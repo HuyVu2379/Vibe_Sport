@@ -1,0 +1,232 @@
+// ===========================================
+// VIBE-SPORT MVP - Prisma Schema
+// Based on Conceptual ERD v1.0
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// ENUMS
+// ===========================================
+
+enum UserRole {
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum VenueStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CourtStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SportType {
+  FOOTBALL
+  BADMINTON
+  TENNIS
+  BASKETBALL
+  VOLLEYBALL
+}
+
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+enum DayType {
+  WEEKDAY
+  WEEKEND
+}
+
+enum BookingStatus {
+  HOLD
+  CONFIRMED
+  CANCELLED_BY_USER
+  CANCELLED_BY_OWNER
+  EXPIRED
+  COMPLETED
+}
+
+enum ActorType {
+  SYSTEM
+  CUSTOMER
+  OWNER
+  ADMIN
+}
+
+enum NotificationType {
+  BOOKING
+  PAYMENT
+  REMINDER
+}
+
+// ===========================================
+// ENTITIES
+// ===========================================
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  phone     String?    @unique
+  password  String
+  fullName  String     @map("full_name")
+  role      UserRole   @default(CUSTOMER)
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  venues        Venue[]
+  bookings      Booking[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Venue {
+  id        String      @id @default(uuid())
+  ownerId   String      @map("owner_id")
+  name      String
+  address   String
+  latitude  Decimal     @db.Decimal(10, 8)
+  longitude Decimal     @db.Decimal(11, 8)
+  status    VenueStatus @default(ACTIVE)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  owner  User    @relation(fields: [ownerId], references: [id])
+  courts Court[]
+
+  @@map("venues")
+}
+
+model Court {
+  id        String      @id @default(uuid())
+  venueId   String      @map("venue_id")
+  name      String
+  sportType SportType   @map("sport_type")
+  status    CourtStatus @default(ACTIVE)
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  venue          Venue            @relation(fields: [venueId], references: [id])
+  operatingHours OperatingHours[]
+  pricingRules   PricingRule[]
+  bookings       Booking[]
+
+  @@map("courts")
+}
+
+model OperatingHours {
+  id        String    @id @default(uuid())
+  courtId   String    @map("court_id")
+  dayOfWeek DayOfWeek @map("day_of_week")
+  openTime  String    @map("open_time") // Format: "HH:mm"
+  closeTime String    @map("close_time") // Format: "HH:mm"
+  isClosed  Boolean   @default(false) @map("is_closed")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  court Court @relation(fields: [courtId], references: [id])
+
+  @@unique([courtId, dayOfWeek])
+  @@map("operating_hours")
+}
+
+model PricingRule {
+  id           String   @id @default(uuid())
+  courtId      String   @map("court_id")
+  dayType      DayType  @map("day_type")
+  startTime    String   @map("start_time") // Format: "HH:mm"
+  endTime      String   @map("end_time") // Format: "HH:mm"
+  pricePerHour Decimal  @map("price_per_hour") @db.Decimal(12, 2)
+  isPeak       Boolean  @default(false) @map("is_peak")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  court Court @relation(fields: [courtId], references: [id])
+
+  @@map("pricing_rules")
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  userId        String        @map("user_id")
+  courtId       String        @map("court_id")
+  startTime     DateTime      @map("start_time")
+  endTime       DateTime      @map("end_time")
+  status        BookingStatus @default(HOLD)
+  holdExpiresAt DateTime?     @map("hold_expires_at")
+  totalPrice    Decimal       @map("total_price") @db.Decimal(12, 2)
+  note          String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  user      User              @relation(fields: [userId], references: [id])
+  court     Court             @relation(fields: [courtId], references: [id])
+  auditLogs BookingAuditLog[]
+
+  // Index for conflict checking: courtId + startTime + endTime + status
+  @@index([courtId, startTime, endTime, status])
+  @@map("bookings")
+}
+
+model BookingAuditLog {
+  id         String    @id @default(uuid())
+  bookingId  String    @map("booking_id")
+  fromStatus BookingStatus? @map("from_status")
+  toStatus   BookingStatus  @map("to_status")
+  actorType  ActorType @map("actor_type")
+  actorId    String?   @map("actor_id")
+  note       String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@map("booking_audit_logs")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
