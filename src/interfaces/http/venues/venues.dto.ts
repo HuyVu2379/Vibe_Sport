@@ -61,6 +61,12 @@ export class VenueListItemDto {
     @ApiProperty({ example: '123 Street, District' })
     address: string;
 
+    @ApiProperty({ example: 10.762622 })
+    lat: number;
+
+    @ApiProperty({ example: 106.660172 })
+    lng: number;
+
     @ApiPropertyOptional({ example: 2.4 })
     distanceKm?: number;
 

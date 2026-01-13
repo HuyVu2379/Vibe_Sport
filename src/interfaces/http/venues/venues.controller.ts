@@ -42,6 +42,8 @@ export class VenuesController {
                 venueId: venue.id,
                 name: venue.name,
                 address: venue.address,
+                lat: venue.latitude,
+                lng: venue.longitude,
                 distanceKm: venue.distanceKm,
                 sportTypes: venue.sportTypes,
             })),

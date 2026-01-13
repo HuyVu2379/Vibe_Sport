@@ -93,7 +93,15 @@ export class VenueRepository implements IVenueRepository {
             }
 
             return {
-                ...domain,
+                id: domain.id,
+                ownerId: domain.ownerId,
+                name: domain.name,
+                address: domain.address,
+                latitude: domain.latitude,
+                longitude: domain.longitude,
+                status: domain.status,
+                createdAt: domain.createdAt,
+                updatedAt: domain.updatedAt,
                 sportTypes,
                 distanceKm,
             } as VenueWithDistance;
