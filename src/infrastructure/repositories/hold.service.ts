@@ -33,6 +33,18 @@ export class HoldService implements IHoldService {
         return this.redisService.setNx(key, value, ttlSeconds);
     }
 
+    async updateHold(
+        courtId: string,
+        startTime: Date,
+        endTime: Date,
+        data: HoldData,
+        ttlSeconds: number,
+    ): Promise<void> {
+        const key = this.buildKey(courtId, startTime, endTime);
+        const value = JSON.stringify(data);
+        await this.redisService.set(key, value, ttlSeconds);
+    }
+
     async releaseHold(courtId: string, startTime: Date, endTime: Date): Promise<void> {
         const key = this.buildKey(courtId, startTime, endTime);
         await this.redisService.del(key);

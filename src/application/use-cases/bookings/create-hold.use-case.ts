@@ -16,7 +16,9 @@ import {
     ActorType,
 } from '../../ports/audit.repository.port';
 import { ICourtRepository, COURT_REPOSITORY } from '../../ports/court.repository.port';
+import { IVenueRepository, VENUE_REPOSITORY } from '../../ports/venue.repository.port';
 import { IPricingRepository, PRICING_REPOSITORY } from '../../ports/pricing.repository.port';
+import { ISocketService, SOCKET_SERVICE } from '../../ports/socket.service.port';
 import { BookingStatus, BLOCKING_STATUSES } from '../../../domain/entities/booking-status.enum';
 import { Booking } from '../../../domain/entities/booking.entity';
 import {
@@ -52,6 +54,10 @@ export class CreateHoldUseCase {
         private readonly courtRepository: ICourtRepository,
         @Inject(PRICING_REPOSITORY)
         private readonly pricingRepository: IPricingRepository,
+        @Inject(VENUE_REPOSITORY)
+        private readonly venueRepository: IVenueRepository,
+        @Inject(SOCKET_SERVICE)
+        private readonly socketService: ISocketService,
         private readonly configService: ConfigService,
     ) { }
 
@@ -82,8 +88,9 @@ export class CreateHoldUseCase {
             endTime,
         );
 
-        // 4. Get TTL configuration
-        const holdTtlMinutes = this.configService.get<number>('booking.holdTtlMinutes', 5);
+        // 4. Get TTL configuration from VenuePolicy or fallback to config
+        const policy = await this.venueRepository.findPolicyByVenueId(court.venueId);
+        const holdTtlMinutes = policy?.holdTTL ?? this.configService.get<number>('booking.holdTtlMinutes', 10);
         const holdTtlSeconds = holdTtlMinutes * 60;
         const holdExpiresAt = new Date(Date.now() + holdTtlSeconds * 1000);
 
@@ -97,6 +104,16 @@ export class CreateHoldUseCase {
             { bookingId: tempBookingId, userId },
             holdTtlSeconds,
         );
+
+        if (acquired) {
+            this.socketService.emitToVenue(court.venueId, 'slot.locked', {
+                courtId,
+                startTime,
+                endTime,
+                bookingId: tempBookingId,
+                holderId: userId,
+            });
+        }
 
         if (!acquired) {
             throw new SlotConflictError(courtId, startTime, endTime);
@@ -117,6 +134,11 @@ export class CreateHoldUseCase {
             if (activeConflicts.length > 0) {
                 // Release Redis lock since DB shows conflict
                 await this.holdService.releaseHold(courtId, startTime, endTime);
+                this.socketService.emitToVenue(court.venueId, 'slot.released', {
+                    courtId,
+                    startTime,
+                    endTime,
+                });
                 throw new SlotConflictError(courtId, startTime, endTime);
             }
 
@@ -132,14 +154,22 @@ export class CreateHoldUseCase {
             });
 
             // 8. Update Redis with actual booking ID
-            await this.holdService.releaseHold(courtId, startTime, endTime);
-            await this.holdService.acquireHold(
+            // Refactored to use updateHold to prevent lock flickering
+            await this.holdService.updateHold(
                 courtId,
                 startTime,
                 endTime,
                 { bookingId: booking.id, userId },
                 holdTtlSeconds,
             );
+
+            this.socketService.emitToVenue(court.venueId, 'slot.locked', {
+                courtId,
+                startTime,
+                endTime,
+                bookingId: booking.id,
+                holderId: userId,
+            });
 
             // 9. Create audit log
             await this.auditRepository.create({
@@ -159,7 +189,19 @@ export class CreateHoldUseCase {
             };
         } catch (error) {
             // Release Redis lock on any error
-            await this.holdService.releaseHold(courtId, startTime, endTime);
+            try {
+                await this.holdService.releaseHold(courtId, startTime, endTime);
+                // Only emit released if we have the court object
+                if (court) {
+                    this.socketService.emitToVenue(court.venueId, 'slot.released', {
+                        courtId,
+                        startTime,
+                        endTime,
+                    });
+                }
+            } catch (e) {
+                // ignore release error
+            }
             throw error;
         }
     }

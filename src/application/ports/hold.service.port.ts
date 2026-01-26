@@ -24,6 +24,17 @@ export interface IHoldService {
     ): Promise<boolean>;
 
     /**
+     * Update an existing hold (overwrite)
+     */
+    updateHold(
+        courtId: string,
+        startTime: Date,
+        endTime: Date,
+        data: HoldData,
+        ttlSeconds: number,
+    ): Promise<void>;
+
+    /**
      * Release a hold on a slot
      */
     releaseHold(courtId: string, startTime: Date, endTime: Date): Promise<void>;
