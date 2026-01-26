@@ -1,19 +1,29 @@
 // ===========================================
 // APPLICATION LAYER - Confirm Booking Use Case
 // Transitions HOLD -> CONFIRMED with conflict check
+// Also handles PayOS integration for deposits
 // ===========================================
 
 import { Inject, Injectable } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
     IBookingRepository,
     BOOKING_REPOSITORY,
 } from '../../ports/booking.repository.port';
+import { BookingConfirmedEvent } from '../../events/booking-confirmed.event';
+import {
+    ICourtRepository,
+    COURT_REPOSITORY,
+} from '../../ports/court.repository.port';
+import { IVenueRepository, VENUE_REPOSITORY } from '../../ports/venue.repository.port';
 import { IHoldService, HOLD_SERVICE } from '../../ports/hold.service.port';
+import { IPaymentService, PAYMENT_SERVICE } from '../../ports/payment.service.port';
 import {
     IAuditRepository,
     AUDIT_REPOSITORY,
     ActorType,
 } from '../../ports/audit.repository.port';
+import { ISocketService, SOCKET_SERVICE } from '../../ports/socket.service.port';
 import {
     BookingStatus,
     isValidTransition,
@@ -41,6 +51,8 @@ export interface ConfirmBookingOutput {
     startTime: Date;
     endTime: Date;
     totalPrice: number;
+    paymentUrl?: string;
+    orderCode?: number;
 }
 
 @Injectable()
@@ -52,6 +64,15 @@ export class ConfirmBookingUseCase {
         private readonly holdService: IHoldService,
         @Inject(AUDIT_REPOSITORY)
         private readonly auditRepository: IAuditRepository,
+        @Inject(COURT_REPOSITORY)
+        private readonly courtRepository: ICourtRepository,
+        @Inject(VENUE_REPOSITORY)
+        private readonly venueRepository: IVenueRepository,
+        @Inject(PAYMENT_SERVICE)
+        private readonly paymentService: IPaymentService,
+        @Inject(SOCKET_SERVICE)
+        private readonly socketService: ISocketService,
+        private readonly eventEmitter: EventEmitter2,
     ) { }
 
     async execute(input: ConfirmBookingInput): Promise<ConfirmBookingOutput> {
@@ -112,6 +133,34 @@ export class ConfirmBookingUseCase {
             );
         }
 
+        // 5.5. Check Payment Policy
+        const court = await this.courtRepository.findById(booking.courtId);
+        const policy = await this.venueRepository.findPolicyByVenueId(court?.venueId || '');
+
+        if (policy && policy.depositType !== 'NONE') {
+            let amount = Number(booking.totalPrice);
+            if (policy.depositType === 'PERCENTAGE') {
+                amount = (amount * Number(policy.depositValue)) / 100;
+            }
+
+            const paymentLink = await this.paymentService.createPaymentLink({
+                bookingId: booking.id,
+                amount,
+                description: `Thanh toán cọc cho booking ${booking.id}`,
+            });
+
+            return {
+                bookingId: booking.id,
+                status: booking.status,
+                courtId: booking.courtId,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                totalPrice: Number(booking.totalPrice),
+                paymentUrl: paymentLink.paymentUrl,
+                orderCode: paymentLink.orderCode,
+            };
+        }
+
         // 6. Update booking to CONFIRMED
         const updatedBooking = await this.bookingRepository.update(bookingId, {
             status: BookingStatus.CONFIRMED,
@@ -135,13 +184,41 @@ export class ConfirmBookingUseCase {
             note: note || 'Booking confirmed by customer',
         });
 
+        // 9. Emit event for notifications
+        // 9. Emit event for notifications
+        this.eventEmitter.emit(
+            'booking.confirmed',
+            new BookingConfirmedEvent(
+                updatedBooking.id,
+                updatedBooking.userId,
+                court?.name || 'Unknown Court',
+                updatedBooking.startTime,
+            ),
+        );
+
+        // 10. Emit socket events for real-time updates
+        this.socketService.emitToUser(updatedBooking.userId, 'booking.confirmed', {
+            bookingId: updatedBooking.id,
+            status: BookingStatus.CONFIRMED,
+        });
+
+        if (court) {
+            this.socketService.emitToVenue(court.venueId, 'slot.updated', {
+                courtId: updatedBooking.courtId,
+                startTime: updatedBooking.startTime,
+                endTime: updatedBooking.endTime,
+                status: BookingStatus.CONFIRMED,
+                bookingId: updatedBooking.id,
+            });
+        }
+
         return {
             bookingId: updatedBooking.id,
             status: updatedBooking.status,
             courtId: updatedBooking.courtId,
             startTime: updatedBooking.startTime,
             endTime: updatedBooking.endTime,
-            totalPrice: updatedBooking.totalPrice,
+            totalPrice: Number(updatedBooking.totalPrice),
         };
     }
 }
