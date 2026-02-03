@@ -4,11 +4,13 @@ import { PayosService } from '../../infrastructure/notifications/payos.service';
 import { PAYMENT_SERVICE } from '../../application/ports/payment.service.port';
 import { PrismaModule } from '../../infrastructure/database/prisma.module';
 import { BookingsModule } from '../bookings/bookings.module';
+import { CourtsModule } from '../courts/courts.module';
+import { AuditModule } from '../audit/audit.module';
 import { ProcessPaymentWebhookUseCase } from '../../application/use-cases/payments/process-payment-webhook.use-case';
 
 @Global()
 @Module({
-    imports: [PrismaModule, BookingsModule],
+    imports: [PrismaModule, BookingsModule, CourtsModule, AuditModule],
     controllers: [PaymentsController],
     providers: [
         ProcessPaymentWebhookUseCase,

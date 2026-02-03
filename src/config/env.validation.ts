@@ -45,6 +45,26 @@ class EnvironmentVariables {
     @IsNumber()
     @Min(1)
     THROTTLE_LIMIT: number;
+
+    @IsString()
+    @IsOptional()
+    PAYOS_CLIENT_ID: string;
+
+    @IsString()
+    @IsOptional()
+    PAYOS_API_KEY: string;
+
+    @IsString()
+    @IsOptional()
+    PAYOS_CHECKSUM_KEY: string;
+
+    @IsString()
+    @IsOptional()
+    PAYOS_RETURN_URL: string;
+
+    @IsString()
+    @IsOptional()
+    PAYOS_CANCEL_URL: string;
 }
 
 export function validate(config: Record<string, unknown>) {
