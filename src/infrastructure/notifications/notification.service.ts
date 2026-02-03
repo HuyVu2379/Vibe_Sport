@@ -19,7 +19,8 @@ export class NotificationService implements INotificationService {
         const notification = await this.prisma.notification.create({
             data: {
                 userId: params.userId,
-                type: params.type,
+                type: params.type as any,
+                title: params.title,
                 message: params.message,
             },
         });
@@ -27,13 +28,14 @@ export class NotificationService implements INotificationService {
         this.socketService.emitToUser(params.userId, 'notification.new', {
             id: notification.id,
             type: notification.type,
+            title: notification.title,
             message: notification.message,
             createdAt: notification.createdAt,
             read: false,
         });
     }
 
-    async sendToUser(userId: string, type: NotificationType, message: string): Promise<void> {
-        await this.send({ userId, type, message });
+    async sendToUser(userId: string, type: NotificationType, title: string, message: string): Promise<void> {
+        await this.send({ userId, type, title, message });
     }
 }
