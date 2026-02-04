@@ -36,7 +36,10 @@ import {
     OwnerBookingsListResponseDto,
     OwnerCancelBookingDto,
     CancelResponseDto,
+    VenueAnalyticsQueryDto,
+    VenueAnalyticsResponseDto,
 } from './owner.dto';
+import { AnalyticsService } from '../../../modules/owner/analytics.service';
 
 interface AuthUser {
     userId: string;
@@ -53,7 +56,23 @@ export class OwnerBookingsController {
     constructor(
         private readonly getOwnerBookingsUseCase: GetOwnerBookingsUseCase,
         private readonly cancelBookingUseCase: CancelBookingUseCase,
+        private readonly analyticsService: AnalyticsService,
     ) { }
+
+    @Get('analytics/:venueId')
+    @ApiOperation({ summary: 'Get venue analytics' })
+    @ApiParam({ name: 'venueId', type: 'string', format: 'uuid' })
+    @ApiResponse({ status: 200, type: VenueAnalyticsResponseDto })
+    async getVenueAnalytics(
+        @Param('venueId', ParseUUIDPipe) venueId: string,
+        @Query() query: VenueAnalyticsQueryDto,
+    ): Promise<VenueAnalyticsResponseDto> {
+        return this.analyticsService.getVenueAnalytics(
+            venueId,
+            new Date(query.from),
+            new Date(query.to),
+        );
+    }
 
     @Get('bookings')
     @ApiOperation({ summary: 'Get owner bookings' })

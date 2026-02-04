@@ -109,3 +109,27 @@ export class CancelResponseDto {
     @ApiProperty({ enum: BookingStatus, example: BookingStatus.CANCELLED_BY_OWNER })
     status: BookingStatus;
 }
+
+export class VenueAnalyticsQueryDto {
+    @ApiProperty({ example: '2026-01-01' })
+    @IsDateString()
+    from: string;
+
+    @ApiProperty({ example: '2026-01-31' })
+    @IsDateString()
+    to: string;
+}
+
+export class VenueAnalyticsResponseDto {
+    @ApiProperty({ example: 1500000 })
+    totalRevenue: number;
+
+    @ApiProperty({ example: 25 })
+    totalBookings: number;
+
+    @ApiProperty({ example: 20 })
+    completedBookings: number;
+
+    @ApiProperty({ example: 5 })
+    cancelledBookings: number;
+}
