@@ -4,6 +4,7 @@
 // ===========================================
 
 import { Module } from '@nestjs/common';
+import { VenuesModule } from '../venues/venues.module';
 import { BookingsController, MyBookingsController } from '../../interfaces/http/bookings/bookings.controller';
 
 import {
@@ -13,6 +14,7 @@ import {
     COURT_REPOSITORY,
     PRICING_REPOSITORY,
     USER_REPOSITORY,
+    RECURRING_REPOSITORY,
 } from '../../application/ports';
 
 import {
@@ -22,6 +24,7 @@ import {
     CourtRepository,
     PricingRepository,
     UserRepository,
+    RecurringRepository,
 } from '../../infrastructure/repositories';
 
 import {
@@ -30,9 +33,11 @@ import {
     CancelBookingUseCase,
     GetMyBookingsUseCase,
     GetOwnerBookingsUseCase,
+    CreateRecurringBookingUseCase,
 } from '../../application/use-cases/bookings';
 
 @Module({
+    imports: [VenuesModule],
     controllers: [BookingsController, MyBookingsController],
     providers: [
         // Use Cases
@@ -41,6 +46,7 @@ import {
         CancelBookingUseCase,
         GetMyBookingsUseCase,
         GetOwnerBookingsUseCase,
+        CreateRecurringBookingUseCase,
 
         // Repository implementations
         { provide: BOOKING_REPOSITORY, useClass: BookingRepository },
@@ -49,6 +55,7 @@ import {
         { provide: COURT_REPOSITORY, useClass: CourtRepository },
         { provide: PRICING_REPOSITORY, useClass: PricingRepository },
         { provide: USER_REPOSITORY, useClass: UserRepository },
+        { provide: RECURRING_REPOSITORY, useClass: RecurringRepository },
     ],
     exports: [
         BOOKING_REPOSITORY,
