@@ -120,3 +120,11 @@ export class ForbiddenError extends DomainError {
         super(message);
     }
 }
+
+export class CancellationWindowClosedError extends DomainError {
+    readonly code = 'CANCELLATION_WINDOW_CLOSED';
+
+    constructor(hours: number) {
+        super(`Cancellation is not allowed less than ${hours} hours before the start time`);
+    }
+}
