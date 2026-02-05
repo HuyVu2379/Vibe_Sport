@@ -6,3 +6,8 @@ export * from './user.repository.port';
 export { VENUE_REPOSITORY, type IVenueRepository, type SearchVenuesParams, type VenueWithDistance } from './venue.repository.port';
 export * from './court.repository.port';
 export * from './pricing.repository.port';
+export * from './notification.service.port';
+export * from './venue-staff.repository.port';
+export * from './payment.service.port';
+export * from './recurring.repository.port';
+export * from './socket.service.port';

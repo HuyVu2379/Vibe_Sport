@@ -32,13 +32,23 @@ export class PricingRepository implements IPricingRepository {
     }
 
     async findOperatingHoursByCourtId(courtId: string): Promise<OperatingHours[]> {
+        // Find court to get venueId
+        const court = await this.prisma.court.findUnique({
+            where: { id: courtId },
+            select: { venueId: true },
+        });
+
+        if (!court) {
+            return [];
+        }
+
         const hours = await this.prisma.operatingHours.findMany({
-            where: { courtId },
+            where: { venueId: court.venueId },
         });
 
         return hours.map((h) => ({
             id: h.id,
-            courtId: h.courtId,
+            courtId: courtId, // Map input courtId to satisfy interface
             dayOfWeek: h.dayOfWeek,
             openTime: h.openTime,
             closeTime: h.closeTime,

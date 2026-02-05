@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { LoggerModule } from 'nestjs-pino';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Config
 import configuration from './config/configuration';
@@ -22,6 +24,15 @@ import { AvailabilityModule } from './modules/availability/availability.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { OwnerModule } from './modules/owner/owner.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+import { SocketModule } from './modules/socket/socket.module';
+
+// New Feature Modules
+import { UploadModule } from './modules/upload/upload.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 // Filters & Guards
 import { GlobalExceptionFilter } from './interfaces/filters/global-exception.filter';
@@ -35,6 +46,8 @@ import { JwtAuthGuard } from './interfaces/guards/jwt-auth.guard';
       load: [configuration],
       validate,
     }),
+    EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
 
     // Logging
     LoggerModule.forRootAsync({
@@ -85,6 +98,15 @@ import { JwtAuthGuard } from './interfaces/guards/jwt-auth.guard';
     BookingsModule,
     OwnerModule,
     AuditModule,
+    NotificationsModule,
+    PaymentsModule,
+    SocketModule,
+
+    // New Feature Modules
+    UploadModule,
+    ReviewsModule,
+    FavoritesModule,
+    ChatModule,
   ],
   providers: [
     {

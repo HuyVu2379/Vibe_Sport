@@ -18,7 +18,10 @@ import {
     BookingNotFoundError,
     BookingNotOwnedError,
     InvalidBookingTransitionError,
+    CancellationWindowClosedError,
 } from '../../../domain/errors';
+import { IVenueRepository, VENUE_REPOSITORY } from '../../ports/venue.repository.port';
+import { ICourtRepository, COURT_REPOSITORY } from '../../ports/court.repository.port';
 
 export interface CancelBookingInput {
     bookingId: string;
@@ -39,6 +42,10 @@ export class CancelBookingUseCase {
         private readonly bookingRepository: IBookingRepository,
         @Inject(AUDIT_REPOSITORY)
         private readonly auditRepository: IAuditRepository,
+        @Inject(VENUE_REPOSITORY)
+        private readonly venueRepository: IVenueRepository,
+        @Inject(COURT_REPOSITORY)
+        private readonly courtRepository: ICourtRepository,
     ) { }
 
     async execute(input: CancelBookingInput): Promise<CancelBookingOutput> {
@@ -63,6 +70,22 @@ export class CancelBookingUseCase {
         // 4. Validate transition
         if (!isValidTransition(booking.status, targetStatus)) {
             throw new InvalidBookingTransitionError(booking.status, targetStatus);
+        }
+
+        // 4.5. For Customer cancellation, check cancellation window
+        if (!isOwner) {
+            const court = await this.courtRepository.findById(booking.courtId);
+            if (court) {
+                const policy = await this.venueRepository.findPolicyByVenueId(court.venueId);
+                const cancelBeforeHours = policy?.cancelBeforeHours ?? 24;
+
+                const now = new Date();
+                const limitTime = new Date(booking.startTime.getTime() - cancelBeforeHours * 60 * 60 * 1000);
+
+                if (now > limitTime) {
+                    throw new CancellationWindowClosedError(cancelBeforeHours);
+                }
+            }
         }
 
         // 5. Update booking

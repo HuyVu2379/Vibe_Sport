@@ -3,6 +3,7 @@
 // ===========================================
 
 import { Venue } from '../../domain/entities/venue.entity';
+import { VenuePolicy } from '../../domain/entities/venue-policy.entity';
 
 export interface SearchVenuesParams {
     lat?: number;
@@ -33,4 +34,5 @@ export interface IVenueRepository {
     findByIdWithCourts(id: string): Promise<any | null>;
     search(params: SearchVenuesParams): Promise<PaginatedResult<VenueWithDistance>>;
     findByOwnerId(ownerId: string): Promise<Venue[]>;
+    findPolicyByVenueId(venueId: string): Promise<VenuePolicy | null>;
 }
