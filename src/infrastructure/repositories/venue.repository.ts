@@ -12,6 +12,7 @@ import {
     VenueWithDistance,
 } from '../../application/ports/venue.repository.port';
 import { Venue, VenueStatus } from '../../domain/entities/venue.entity';
+import { VenuePolicy, RefundRule, DepositType } from '../../domain/entities/venue-policy.entity';
 
 @Injectable()
 export class VenueRepository implements IVenueRepository {
@@ -131,6 +132,29 @@ export class VenueRepository implements IVenueRepository {
         });
 
         return venues.map(this.mapToDomain);
+    }
+
+    async findPolicyByVenueId(venueId: string): Promise<VenuePolicy | null> {
+        const policy = await this.prisma.venuePolicy.findUnique({
+            where: { venueId },
+        });
+
+        return policy ? this.mapPolicyToDomain(policy) : null;
+    }
+
+    private mapPolicyToDomain(record: any): VenuePolicy {
+        return new VenuePolicy(
+            record.id,
+            record.venueId,
+            record.holdTTL,
+            record.allowExtendHold,
+            record.cancelBeforeHours,
+            record.refundRule as RefundRule,
+            record.depositType as DepositType,
+            Number(record.depositValue),
+            record.createdAt,
+            record.updatedAt,
+        );
     }
 
     private mapToDomain(record: any): Venue {
