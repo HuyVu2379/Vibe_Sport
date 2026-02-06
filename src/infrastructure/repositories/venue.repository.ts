@@ -32,6 +32,27 @@ export class VenueRepository implements IVenueRepository {
             include: {
                 courts: {
                     where: { status: 'ACTIVE' },
+                    include: {
+                        pricingRules: true,
+                    },
+                },
+                venueAmenities: {
+                    include: {
+                        amenity: true,
+                    },
+                },
+                operatingHours: true,
+                venuePolicy: true,
+                owner: {
+                    select: {
+                        email: true,
+                        phone: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        reviews: true,
+                    },
                 },
             },
         });
@@ -40,7 +61,7 @@ export class VenueRepository implements IVenueRepository {
     }
 
     async search(params: SearchVenuesParams): Promise<PaginatedResult<VenueWithDistance>> {
-        const { lat, lng, radiusKm, sportType, q, page = 0, size = 10 } = params;
+        const { lat, lng, radiusKm, sportType, q, minPrice, maxPrice, page = 0, size = 10 } = params;
 
         // Build where clause
         const where: any = {
@@ -63,6 +84,25 @@ export class VenueRepository implements IVenueRepository {
             };
         }
 
+        if (minPrice || maxPrice) {
+            const priceFilter: any = {};
+            if (minPrice) priceFilter.gte = minPrice;
+            if (maxPrice) priceFilter.lte = maxPrice;
+
+            where.courts = {
+                ...(where.courts || {}),
+                some: {
+                    ...(where.courts?.some || {}),
+                    status: 'ACTIVE',
+                    pricingRules: {
+                        some: {
+                            pricePerHour: priceFilter,
+                        },
+                    },
+                },
+            };
+        }
+
         const [items, total] = await Promise.all([
             this.prisma.venue.findMany({
                 where,
@@ -70,8 +110,19 @@ export class VenueRepository implements IVenueRepository {
                 take: size,
                 include: {
                     courts: {
-                        select: { sportType: true },
+                        select: {
+                            sportType: true,
+                            pricingRules: {
+                                select: { pricePerHour: true },
+                            },
+                        },
                         where: { status: 'ACTIVE' },
+                    },
+                    _count: {
+                        select: {
+                            courts: { where: { status: 'ACTIVE' } },
+                            reviews: true,
+                        },
                     },
                 },
             }),
@@ -82,6 +133,12 @@ export class VenueRepository implements IVenueRepository {
         const mappedItems: VenueWithDistance[] = items.map((venue) => {
             const domain = this.mapToDomain(venue);
             const sportTypes = [...new Set(venue.courts.map((c) => c.sportType))];
+
+            // Calculate min price
+            const prices = venue.courts.flatMap((c) =>
+                c.pricingRules.map((p) => Number(p.pricePerHour)),
+            );
+            const minPricePerHour = prices.length > 0 ? Math.min(...prices) : 0;
 
             let distanceKm: number | undefined;
             if (lat && lng) {
@@ -105,6 +162,11 @@ export class VenueRepository implements IVenueRepository {
                 updatedAt: domain.updatedAt,
                 sportTypes,
                 distanceKm,
+                totalCourts: venue._count.courts,
+                totalReviews: venue._count.reviews,
+                ratingAvg: Number(venue.rating || 0),
+                minPricePerHour,
+                imageUrl: venue.imageUrls[0],
             } as VenueWithDistance;
         });
 

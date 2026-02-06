@@ -36,6 +36,25 @@ export class SearchVenuesQueryDto {
     @IsString()
     q?: string;
 
+    @ApiPropertyOptional({ example: '2026-02-06', description: 'Date' })
+    @IsOptional()
+    @IsString()
+    date?: string;
+
+    @ApiPropertyOptional({ example: 100000, description: 'Min price per hour' })
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @Min(0)
+    minPrice?: number;
+
+    @ApiPropertyOptional({ example: 200000, description: 'Max price per hour' })
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @Min(0)
+    maxPrice?: number;
+
     @ApiPropertyOptional({ example: 0, description: 'Page number' })
     @IsOptional()
     @Type(() => Number)
@@ -72,6 +91,21 @@ export class VenueListItemDto {
 
     @ApiProperty({ example: ['FOOTBALL'] })
     sportTypes: string[];
+
+    @ApiProperty({ example: 1 })
+    totalCourts: number;
+
+    @ApiProperty({ example: 1 })
+    totalReviews: number;
+
+    @ApiProperty({ example: 1 })
+    ratingAvg: number;
+
+    @ApiProperty({ example: 100000 })
+    minPricePerHour: number;
+
+    @ApiProperty({ example: 'url1' })
+    imageUrl: string;
 }
 
 export class VenueListResponseDto {
@@ -97,6 +131,82 @@ export class CourtItemDto {
 
     @ApiProperty({ example: 'FOOTBALL' })
     sportType: string;
+
+    @ApiProperty({ example: 100000 })
+    minPricePerHour: number;
+
+    @ApiProperty({ example: ['url1', 'url2'] })
+    imageUrls: string[];
+}
+
+export class Amentity {
+    @ApiProperty({ example: 'uuid' })
+    amenityId: string;
+
+    @ApiProperty({ example: 'name' })
+    name: string;
+
+    @ApiProperty({ example: 'icon' })
+    icon: string;
+}
+
+export class ReviewItemDto {
+    @ApiProperty({ example: 'uuid' })
+    reviewId: string;
+
+    @ApiProperty({ example: 'uuid' })
+    userId: string;
+
+    @ApiProperty({ example: 'name' })
+    name: string;
+
+    @ApiProperty({ example: 'avatar' })
+    avatar: string;
+
+    @ApiProperty({ example: 5 })
+    rating: number;
+
+    @ApiProperty({ example: 'comment' })
+    comment: string;
+
+    @ApiPropertyOptional({ example: 'reply' })
+    reply?: string;
+
+    @ApiProperty({ example: '2026-02-06' })
+    createdAt: string;
+
+    @ApiPropertyOptional({ example: '2026-02-06' })
+    replyTime?: string;
+}
+
+export class Contact {
+    @ApiProperty({ example: '0123456789' })
+    phone: string;
+
+    @ApiProperty({ example: 'example@gmail.com' })
+    email: string;
+}
+
+export class Policy {
+    @ApiProperty({ example: 'NONE' })
+    depositType: string;
+
+    @ApiProperty({ example: 10 })
+    depositPercentage: number;
+
+    @ApiProperty({ example: 24 })
+    cancelBeforeHours: number;
+}
+
+export class OpenHour {
+    @ApiProperty({ example: '2026-02-06' })
+    dayOfWeek: string;
+
+    @ApiProperty({ example: '08:00' })
+    openTime: string;
+
+    @ApiProperty({ example: '22:00' })
+    closeTime: string;
 }
 
 export class VenueDetailResponseDto {
@@ -117,4 +227,29 @@ export class VenueDetailResponseDto {
 
     @ApiProperty({ type: [CourtItemDto] })
     courts: CourtItemDto[];
+
+    @ApiProperty({ example: ['url1', 'url2'] })
+    imageUrls: string[];
+
+    @ApiProperty({ example: 'About venue' })
+    about: string;
+
+    @ApiProperty({ type: [Amentity] })
+    amenities: Amentity[];
+
+    @ApiProperty({ example: 1 })
+    totalReviews: number;
+
+    @ApiProperty({ example: 1 })
+    ratingAvg: number;
+
+    @ApiProperty({ type: [OpenHour] })
+    openHours: OpenHour[];
+
+    @ApiProperty({ type: Contact })
+    contact: Contact;
+
+    @ApiProperty({ type: Policy })
+    policy: Policy;
 }
+

@@ -1,44 +1,18 @@
-// ===========================================
-// INTERFACES LAYER - Venues Controller
-// ===========================================
 
-import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { Inject } from '@nestjs/common';
-import { Public } from '../../decorators/public.decorator';
-import { VENUE_REPOSITORY, IVenueRepository } from '../../../application/ports';
-import {
-    SearchVenuesQueryDto,
-    VenueListResponseDto,
-    VenueDetailResponseDto,
-} from './venues.dto';
-import { VenueNotFoundError } from '../../../domain/errors';
+import { Injectable, Inject } from '@nestjs/common';
+import { VENUE_REPOSITORY, IVenueRepository, SearchVenuesParams } from '../ports/venue.repository.port';
+import { VenueListResponseDto, VenueDetailResponseDto } from '../../interfaces/http/venues/venues.dto';
+import { VenueNotFoundError } from '../../domain/errors';
 
-@ApiTags('Venues')
-@Controller('venues')
-export class VenuesController {
+@Injectable()
+export class VenueService {
     constructor(
         @Inject(VENUE_REPOSITORY)
         private readonly venueRepository: IVenueRepository,
     ) { }
 
-    @Get()
-    @Public()
-    @ApiOperation({ summary: 'Search venues' })
-    @ApiResponse({ status: 200, type: VenueListResponseDto })
-    async searchVenues(@Query() query: SearchVenuesQueryDto): Promise<VenueListResponseDto> {
-        const result = await this.venueRepository.search({
-            lat: query.lat,
-            lng: query.lng,
-            radiusKm: query.radiusKm,
-            sportType: query.sportType,
-            q: query.q,
-            date: query.date,
-            minPrice: query.minPrice,
-            maxPrice: query.maxPrice,
-            page: query.page,
-            size: query.size,
-        });
+    async searchVenues(query: SearchVenuesParams): Promise<VenueListResponseDto> {
+        const result = await this.venueRepository.search(query);
 
         return {
             items: result.items.map((venue) => ({
@@ -61,15 +35,7 @@ export class VenuesController {
         };
     }
 
-    @Get(':venueId')
-    @Public()
-    @ApiOperation({ summary: 'Get venue detail with courts' })
-    @ApiParam({ name: 'venueId', type: 'string', format: 'uuid' })
-    @ApiResponse({ status: 200, type: VenueDetailResponseDto })
-    @ApiResponse({ status: 404, description: 'Venue not found' })
-    async getVenueDetail(
-        @Param('venueId', ParseUUIDPipe) venueId: string,
-    ): Promise<VenueDetailResponseDto> {
+    async getVenueDetail(venueId: string): Promise<VenueDetailResponseDto> {
         const venue = await this.venueRepository.findByIdWithCourts(venueId);
         if (!venue) {
             throw new VenueNotFoundError(venueId);
@@ -112,7 +78,7 @@ export class VenuesController {
             },
             policy: venue.venuePolicy ? {
                 depositType: venue.venuePolicy.depositType,
-                depositPercentage: Number(venue.venuePolicy.depositValue), // Assuming depositValue is relevant for percentage or fixed
+                depositPercentage: Number(venue.venuePolicy.depositValue),
                 cancelBeforeHours: venue.venuePolicy.cancelBeforeHours,
             } : {
                 depositType: 'NONE',
