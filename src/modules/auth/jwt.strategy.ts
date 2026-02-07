@@ -18,10 +18,23 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
             secretOrKey: configService.get<string>('jwt.secret'),
+            passReqToCallback: true, // Pass request to validate method
         });
     }
 
-    async validate(payload: any) {
+    async validate(req: any, payload: any) {
+        // Extract token from request
+        const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+
+        // Check if token has been revoked
+        if (token) {
+            const isRevoked = await this.authService.isTokenRevoked(token);
+            if (isRevoked) {
+                throw new UnauthorizedException('Token has been revoked');
+            }
+        }
+
+        // Validate user
         const user = await this.authService.validateUser(payload.sub);
         if (!user) {
             throw new UnauthorizedException('User not found or inactive');

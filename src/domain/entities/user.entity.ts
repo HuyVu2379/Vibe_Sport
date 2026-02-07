@@ -20,6 +20,7 @@ export interface UserProps {
     phone?: string;
     password: string;
     fullName: string;
+    avatarUrl: string;
     role: UserRole;
     status: UserStatus;
     createdAt: Date;

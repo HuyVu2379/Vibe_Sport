@@ -20,4 +20,5 @@ export interface IUserRepository {
     findByEmail(email: string): Promise<User | null>;
     findByPhone(phone: string): Promise<User | null>;
     findByEmailOrPhone(emailOrPhone: string): Promise<User | null>;
+    updatePassword(userId: string, hashedPassword: string): Promise<void>;
 }

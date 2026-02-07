@@ -66,6 +66,13 @@ export class UserRepository implements IUserRepository {
         return user ? this.mapToDomain(user) : null;
     }
 
+    async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: { password: hashedPassword },
+        });
+    }
+
     private mapToDomain(record: any): User {
         return new User({
             id: record.id,
@@ -73,6 +80,7 @@ export class UserRepository implements IUserRepository {
             phone: record.phone,
             password: record.password,
             fullName: record.fullName,
+            avatarUrl: record.avatarUrl || '',
             role: record.role as UserRole,
             status: record.status as UserStatus,
             createdAt: record.createdAt,

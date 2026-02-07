@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { USER_REPOSITORY } from '../../application/ports';
 import { UserRepository } from '../../infrastructure/repositories';
+import { RedisService } from '../../infrastructure/redis/redis.service';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { UserRepository } from '../../infrastructure/repositories';
         AuthService,
         JwtStrategy,
         { provide: USER_REPOSITORY, useClass: UserRepository },
+        RedisService,
     ],
     exports: [AuthService, JwtStrategy, PassportModule],
 })

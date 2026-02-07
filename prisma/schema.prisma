@@ -19,7 +19,7 @@ model User {
   fullName String     @map("full_name")
   role     UserRole   @default(CUSTOMER)
   status   UserStatus @default(ACTIVE)
-
+  avatarUrl String?    @map("avatar_url")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

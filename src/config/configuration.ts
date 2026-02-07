@@ -43,4 +43,24 @@ export default () => ({
         returnUrl: process.env.PAYOS_RETURN_URL,
         cancelUrl: process.env.PAYOS_CANCEL_URL,
     },
+
+    // OTP
+    otp: {
+        ttlSeconds: parseInt(process.env.OTP_TTL_SECONDS ?? '300', 10), // 5 minutes
+        length: parseInt(process.env.OTP_LENGTH ?? '6', 10),
+    },
+
+    // Password
+    password: {
+        saltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS ?? '10', 10),
+    },
+
+    // Email
+    email: {
+        from: process.env.EMAIL_FROM || 'noreply@vibesport.com',
+        host: process.env.MAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.MAIL_PORT ?? '587', 10),
+        user: process.env.EMAIL_USER_NAME,
+        password: process.env.EMAIL_PASSWORD,
+    },
 });

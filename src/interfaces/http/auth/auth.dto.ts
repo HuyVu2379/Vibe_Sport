@@ -30,3 +30,29 @@ export class LoginResponseDto {
     @ApiProperty({ type: UserResponseDto })
     user: UserResponseDto;
 }
+
+export class RegisterResponseDto {
+    @ApiProperty({ example: 'jwt.token.here' })
+    token: string;
+
+    @ApiProperty({ type: UserResponseDto })
+    user: UserResponseDto;
+}
+
+export class RegisterDto {
+    @ApiProperty({ example: 'John Doe' })
+    @IsString()
+    fullName: string
+    @ApiProperty({ example: 'user@example.com' })
+    @IsString()
+    email: string
+    @ApiProperty({ example: '0123456789' })
+    @IsString()
+    phone: string
+    @ApiProperty({ example: 'CUSTOMER' })
+    @IsString()
+    role: string
+    @ApiProperty({ example: 'password123' })
+    @IsString()
+    password: string
+}

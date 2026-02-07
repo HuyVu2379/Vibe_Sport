@@ -8,7 +8,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../../../modules/auth/auth.service';
 import { Public } from '../../decorators/public.decorator';
 
-import { LoginDto, LoginResponseDto } from './auth.dto';
+import { LoginDto, LoginResponseDto, RegisterDto, RegisterResponseDto } from './auth.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -27,12 +27,25 @@ export class AuthController {
             password: dto.otpOrPassword,
         });
 
-        return {
-            token: result.token,
-            user: {
-                userId: result.user.userId,
-                role: result.user.role,
-            },
-        };
+        return result;
+    }
+
+    @Post('register')
+    @Public()
+    @Throttle({ default: { limit: 5, ttl: 60000 } }) // Rate limit: 5 per minute
+    @ApiOperation({ summary: 'Register' })
+    @ApiResponse({ status: 200, type: RegisterResponseDto })
+    @ApiResponse({ status: 401, description: 'Invalid credentials' })
+    async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
+        const result = await this.authService.register(
+            {
+                email: dto.email,
+                password: dto.password,
+                fullName: dto.fullName,
+                role: dto.role,
+                phone: dto.phone,
+            }
+        );
+        return result;
     }
 }

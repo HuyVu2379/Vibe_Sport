@@ -63,6 +63,22 @@ export class UserNotFoundError extends DomainError {
     }
 }
 
+export class EmailConflictError extends DomainError {
+    readonly code = 'EMAIL_ALREADY_EXIST';
+
+    constructor(email: string) {
+        super(`User have email ${email} already exist`);
+    }
+}
+
+export class PhoneConflictError extends DomainError {
+    readonly code = 'PHONE_ALREADY_EXIST';
+
+    constructor(phone: string) {
+        super(`User have phone number ${phone} already exist`);
+    }
+}
+
 export class InvalidCredentialsError extends DomainError {
     readonly code = 'INVALID_CREDENTIALS';
 
@@ -126,5 +142,39 @@ export class CancellationWindowClosedError extends DomainError {
 
     constructor(hours: number) {
         super(`Cancellation is not allowed less than ${hours} hours before the start time`);
+    }
+}
+
+// Password Errors
+export class InvalidPasswordError extends DomainError {
+    readonly code = 'INVALID_PASSWORD';
+
+    constructor() {
+        super('The provided password is incorrect');
+    }
+}
+
+// OTP Errors
+export class InvalidOtpError extends DomainError {
+    readonly code = 'INVALID_OTP';
+
+    constructor() {
+        super('The OTP provided is invalid');
+    }
+}
+
+export class OtpExpiredError extends DomainError {
+    readonly code = 'OTP_EXPIRED';
+
+    constructor() {
+        super('The OTP has expired');
+    }
+}
+
+export class OtpNotFoundError extends DomainError {
+    readonly code = 'OTP_NOT_FOUND';
+
+    constructor() {
+        super('No OTP found for this request');
     }
 }
