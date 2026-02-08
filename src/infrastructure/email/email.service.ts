@@ -6,6 +6,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import { IEmailService } from '../../application/ports/email.service.port';
 
 /**
  * EmailService handles sending emails using Nodemailer
@@ -17,7 +18,7 @@ import { Transporter } from 'nodemailer';
  * - Error handling and logging
  */
 @Injectable()
-export class EmailService implements OnModuleInit {
+export class EmailService implements IEmailService, OnModuleInit {
     private readonly logger = new Logger(EmailService.name);
     private transporter: Transporter;
     private readonly emailFrom: string;

@@ -13,7 +13,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { ChatService } from './chat.service';
+import { SendMessageUseCase } from '../../application/use-cases/chat/send-message.use-case';
+import { GetConversationUseCase } from '../../application/use-cases/chat/get-conversation.use-case';
 
 interface JoinRoomPayload {
     conversationId: string;
@@ -39,7 +40,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     private readonly logger = new Logger(ChatGateway.name);
 
-    constructor(private readonly chatService: ChatService) { }
+    constructor(
+        private readonly sendMessageUseCase: SendMessageUseCase,
+        private readonly getConversationUseCase: GetConversationUseCase,
+    ) { }
 
     handleConnection(client: Socket) {
         this.logger.log(`Chat client connected: ${client.id}`);
@@ -58,7 +62,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
         try {
             // Verify user is participant
-            await this.chatService.getConversation(userId, conversationId);
+            await this.getConversationUseCase.execute({ userId, conversationId });
 
             // Join the room
             client.join(`conversation:${conversationId}`);
@@ -88,7 +92,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const { conversationId, userId, content } = payload;
 
         try {
-            const message = await this.chatService.sendMessage(userId, conversationId, content);
+            const message = await this.sendMessageUseCase.execute({
+                userId,
+                conversationId,
+                content
+            });
 
             // Broadcast to all participants in the conversation
             this.server.to(`conversation:${conversationId}`).emit('new_message', {

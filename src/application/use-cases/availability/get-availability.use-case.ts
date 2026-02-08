@@ -1,9 +1,8 @@
 // ===========================================
-// MODULES - Availability Service
-// Calculates slot availability based on operating hours, pricing, and bookings
+// APPLICATION LAYER - Get Availability Use Case
 // ===========================================
 
-import { Injectable, Inject } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
     ICourtRepository,
     COURT_REPOSITORY,
@@ -11,9 +10,9 @@ import {
     PRICING_REPOSITORY,
     IBookingRepository,
     BOOKING_REPOSITORY,
-} from '../../application/ports';
-import { BookingStatus, BLOCKING_STATUSES } from '../../domain/entities/booking-status.enum';
-import { CourtNotFoundError } from '../../domain/errors';
+} from '../../ports';
+import { BLOCKING_STATUSES } from '../../../domain/entities/booking-status.enum';
+import { CourtNotFoundError } from '../../../domain/errors';
 
 export interface Slot {
     startTime: Date;
@@ -22,8 +21,13 @@ export interface Slot {
     price?: number;
 }
 
+export interface GetAvailabilityInput {
+    courtId: string;
+    date: Date;
+}
+
 @Injectable()
-export class AvailabilityService {
+export class GetAvailabilityUseCase {
     constructor(
         @Inject(COURT_REPOSITORY)
         private readonly courtRepository: ICourtRepository,
@@ -33,7 +37,9 @@ export class AvailabilityService {
         private readonly bookingRepository: IBookingRepository,
     ) { }
 
-    async getAvailability(courtId: string, date: Date): Promise<Slot[]> {
+    async execute(input: GetAvailabilityInput): Promise<Slot[]> {
+        const { courtId, date } = input;
+
         // 1. Verify court exists
         const court = await this.courtRepository.findById(courtId);
         if (!court) {
@@ -56,8 +62,8 @@ export class AvailabilityService {
 
         // 4. Generate hourly slots based on operating hours
         const slots: Slot[] = [];
-        const [openHour, openMinute] = dayHours.openTime.split(':').map(Number);
-        const [closeHour, closeMinute] = dayHours.closeTime.split(':').map(Number);
+        const [openHour] = dayHours.openTime.split(':').map(Number);
+        const [closeHour] = dayHours.closeTime.split(':').map(Number);
 
         const startOfDay = new Date(date);
         startOfDay.setUTCHours(0, 0, 0, 0);
@@ -84,8 +90,7 @@ export class AvailabilityService {
 
             // Check if slot overlaps with any booking
             const isBooked = activeBookings.some(
-                (booking) =>
-                    slotStart < booking.endTime && slotEnd > booking.startTime,
+                (booking) => slotStart < booking.endTime && slotEnd > booking.startTime,
             );
 
             // Calculate price for slot

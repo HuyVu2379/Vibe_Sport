@@ -1,5 +1,5 @@
 // ===========================================
-// FAVORITES CONTROLLER
+// INTERFACES LAYER - Favorites Controller
 // ===========================================
 
 import {
@@ -10,18 +10,31 @@ import {
     Param,
     Query,
     UseGuards,
+    ParseIntPipe,
+    DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiQuery } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../interfaces/guards/jwt-auth.guard';
-import { CurrentUser } from '../../interfaces/decorators/current-user.decorator';
-import { FavoritesService } from './favorites.service';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { CurrentUser } from '../../decorators/current-user.decorator';
+
+import { AddFavoriteUseCase } from '../../../application/use-cases/favorites/add-favorite.use-case';
+import { RemoveFavoriteUseCase } from '../../../application/use-cases/favorites/remove-favorite.use-case';
+import { GetUserFavoritesUseCase } from '../../../application/use-cases/favorites/get-user-favorites.use-case';
+import { ToggleFavoriteUseCase } from '../../../application/use-cases/favorites/toggle-favorite.use-case';
+import { CheckIsFavoriteUseCase } from '../../../application/use-cases/favorites/check-is-favorite.use-case';
 
 @ApiTags('Favorites')
 @Controller()
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class FavoritesController {
-    constructor(private readonly favoritesService: FavoritesService) { }
+    constructor(
+        private readonly addFavoriteUseCase: AddFavoriteUseCase,
+        private readonly removeFavoriteUseCase: RemoveFavoriteUseCase,
+        private readonly getUserFavoritesUseCase: GetUserFavoritesUseCase,
+        private readonly toggleFavoriteUseCase: ToggleFavoriteUseCase,
+        private readonly checkIsFavoriteUseCase: CheckIsFavoriteUseCase,
+    ) { }
 
     @Post('venues/:venueId/favorite')
     @ApiOperation({ summary: 'Add venue to favorites' })
@@ -29,7 +42,7 @@ export class FavoritesController {
         @CurrentUser('userId') userId: string,
         @Param('venueId') venueId: string,
     ) {
-        return this.favoritesService.addFavorite(userId, venueId);
+        return this.addFavoriteUseCase.execute({ userId, venueId });
     }
 
     @Delete('venues/:venueId/favorite')
@@ -38,7 +51,7 @@ export class FavoritesController {
         @CurrentUser('userId') userId: string,
         @Param('venueId') venueId: string,
     ) {
-        await this.favoritesService.removeFavorite(userId, venueId);
+        await this.removeFavoriteUseCase.execute({ userId, venueId });
         return { success: true };
     }
 
@@ -48,7 +61,7 @@ export class FavoritesController {
         @CurrentUser('userId') userId: string,
         @Param('venueId') venueId: string,
     ) {
-        return this.favoritesService.toggleFavorite(userId, venueId);
+        return this.toggleFavoriteUseCase.execute({ userId, venueId });
     }
 
     @Get('favorites')
@@ -57,10 +70,10 @@ export class FavoritesController {
     @ApiQuery({ name: 'size', required: false, type: Number })
     async getUserFavorites(
         @CurrentUser('userId') userId: string,
-        @Query('page') page = 0,
-        @Query('size') size = 10,
+        @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+        @Query('size', new DefaultValuePipe(10), ParseIntPipe) size: number,
     ) {
-        return this.favoritesService.getUserFavorites(userId, Number(page), Number(size));
+        return this.getUserFavoritesUseCase.execute({ userId, page, size });
     }
 
     @Get('venues/:venueId/favorite/status')
@@ -69,7 +82,7 @@ export class FavoritesController {
         @CurrentUser('userId') userId: string,
         @Param('venueId') venueId: string,
     ) {
-        const isFavorite = await this.favoritesService.isFavorite(userId, venueId);
+        const isFavorite = await this.checkIsFavoriteUseCase.execute({ userId, venueId });
         return { isFavorite };
     }
 }

@@ -3,15 +3,15 @@
 // ===========================================
 
 import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../decorators/public.decorator';
-import { AvailabilityService } from '../../../modules/availability/availability.service';
+import { GetAvailabilityUseCase } from '../../../application/use-cases/availability';
 import { AvailabilityResponseDto, GetAvailabilityQueryDto } from './availability.dto';
 
 @ApiTags('Availability')
 @Controller('courts')
 export class AvailabilityController {
-    constructor(private readonly availabilityService: AvailabilityService) { }
+    constructor(private readonly getAvailabilityUseCase: GetAvailabilityUseCase) { }
 
     @Get(':courtId/availability')
     @Public()
@@ -24,7 +24,7 @@ export class AvailabilityController {
         @Query() query: GetAvailabilityQueryDto,
     ): Promise<AvailabilityResponseDto> {
         const date = new Date(query.date);
-        const slots = await this.availabilityService.getAvailability(courtId, date);
+        const slots = await this.getAvailabilityUseCase.execute({ courtId, date });
 
         return {
             courtId,

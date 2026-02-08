@@ -1,16 +1,14 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { PrismaService } from '../../infrastructure/database/prisma.service';
+// ===========================================
+// INFRASTRUCTURE - Analytics Repository
+// ===========================================
+
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../database/prisma.service';
+import { IAnalyticsRepository, AnalyticsSummary } from '../../application/ports/analytics.repository.port';
 import { BookingStatus } from '../../domain/entities/booking-status.enum';
 
-export interface AnalyticsSummary {
-    totalRevenue: number;
-    totalBookings: number;
-    completedBookings: number;
-    cancelledBookings: number;
-}
-
 @Injectable()
-export class AnalyticsService {
+export class AnalyticsRepository implements IAnalyticsRepository {
     constructor(private readonly prisma: PrismaService) { }
 
     async getVenueAnalytics(venueId: string, from: Date, to: Date): Promise<AnalyticsSummary> {
@@ -19,7 +17,12 @@ export class AnalyticsService {
                 court: { venueId },
                 startTime: { gte: from, lte: to },
                 status: {
-                    in: [BookingStatus.CONFIRMED, BookingStatus.COMPLETED, BookingStatus.CANCELLED_BY_USER, BookingStatus.CANCELLED_BY_OWNER],
+                    in: [
+                        BookingStatus.CONFIRMED,
+                        BookingStatus.COMPLETED,
+                        BookingStatus.CANCELLED_BY_USER,
+                        BookingStatus.CANCELLED_BY_OWNER,
+                    ],
                 },
             },
         });

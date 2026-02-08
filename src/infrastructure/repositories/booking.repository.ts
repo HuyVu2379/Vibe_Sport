@@ -12,6 +12,7 @@ import {
     FindConflictingBookingsParams,
     FindBookingsParams,
     PaginatedResult,
+    BookingWithVenue,
 } from '../../application/ports/booking.repository.port';
 import { Booking } from '../../domain/entities/booking.entity';
 import { BookingStatus, BLOCKING_STATUSES } from '../../domain/entities/booking-status.enum';
@@ -52,6 +53,22 @@ export class BookingRepository implements IBookingRepository {
     `;
 
         return bookings.length > 0 ? this.mapToDomain(bookings[0]) : null;
+    }
+
+    async findByIdWithVenue(id: string): Promise<BookingWithVenue | null> {
+        const booking = await this.prisma.booking.findUnique({
+            where: { id },
+            include: { court: { include: { venue: true } } },
+        });
+
+        if (!booking) return null;
+
+        return {
+            id: booking.id,
+            userId: booking.userId,
+            status: booking.status,
+            venueId: booking.court.venue.id,
+        };
     }
 
     async update(id: string, data: UpdateBookingData): Promise<Booking> {

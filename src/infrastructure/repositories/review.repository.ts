@@ -5,27 +5,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { Review } from '../../domain/entities/review.entity';
-
-export interface CreateReviewDto {
-    bookingId: string;
-    venueId: string;
-    userId: string;
-    rating: number;
-    comment?: string;
-}
-
-export interface ReviewWithUser extends Review {
-    user: {
-        id: string;
-        fullName: string;
-    };
-}
+import {
+    IReviewRepository,
+    CreateReviewData,
+    ReviewWithUser
+} from '../../application/ports/review.repository.port';
 
 @Injectable()
-export class ReviewRepository {
+export class ReviewRepository implements IReviewRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async create(data: CreateReviewDto): Promise<Review> {
+    async create(data: CreateReviewData): Promise<Review> {
         const review = await this.prisma.review.create({
             data: {
                 bookingId: data.bookingId,

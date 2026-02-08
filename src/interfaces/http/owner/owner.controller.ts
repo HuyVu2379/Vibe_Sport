@@ -39,7 +39,7 @@ import {
     VenueAnalyticsQueryDto,
     VenueAnalyticsResponseDto,
 } from './owner.dto';
-import { AnalyticsService } from '../../../modules/owner/analytics.service';
+import { GetVenueAnalyticsUseCase } from '../../../application/use-cases/analytics';
 
 interface AuthUser {
     userId: string;
@@ -56,7 +56,7 @@ export class OwnerBookingsController {
     constructor(
         private readonly getOwnerBookingsUseCase: GetOwnerBookingsUseCase,
         private readonly cancelBookingUseCase: CancelBookingUseCase,
-        private readonly analyticsService: AnalyticsService,
+        private readonly getVenueAnalyticsUseCase: GetVenueAnalyticsUseCase,
     ) { }
 
     @Get('analytics/:venueId')
@@ -67,11 +67,11 @@ export class OwnerBookingsController {
         @Param('venueId', ParseUUIDPipe) venueId: string,
         @Query() query: VenueAnalyticsQueryDto,
     ): Promise<VenueAnalyticsResponseDto> {
-        return this.analyticsService.getVenueAnalytics(
+        return this.getVenueAnalyticsUseCase.execute({
             venueId,
-            new Date(query.from),
-            new Date(query.to),
-        );
+            from: new Date(query.from),
+            to: new Date(query.to),
+        });
     }
 
     @Get('bookings')

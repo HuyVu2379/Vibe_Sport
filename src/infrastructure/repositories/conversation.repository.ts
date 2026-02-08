@@ -11,26 +11,17 @@ import {
     MessageType,
     Participant,
 } from '../../domain/entities/conversation.entity';
-
-export interface CreateConversationDto {
-    type: ConversationType;
-    bookingId?: string;
-    venueId?: string;
-    participantIds: string[];
-}
-
-export interface CreateMessageDto {
-    conversationId: string;
-    senderId: string;
-    content: string;
-    type?: MessageType;
-}
+import {
+    IConversationRepository,
+    CreateConversationData,
+    CreateMessageData,
+} from '../../application/ports/conversation.repository.port';
 
 @Injectable()
-export class ConversationRepository {
+export class ConversationRepository implements IConversationRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async create(data: CreateConversationDto): Promise<Conversation> {
+    async create(data: CreateConversationData): Promise<Conversation> {
         const conversation = await this.prisma.conversation.create({
             data: {
                 type: data.type,
@@ -156,7 +147,7 @@ export class ConversationRepository {
     }
 
     // Message operations
-    async createMessage(data: CreateMessageDto): Promise<Message> {
+    async createMessage(data: CreateMessageData): Promise<Message> {
         const message = await this.prisma.message.create({
             data: {
                 conversationId: data.conversationId,

@@ -46,15 +46,27 @@ export interface PaginatedResult<T> {
     total: number;
 }
 
+/**
+ * Booking with venue info - needed for reviews
+ */
+export interface BookingWithVenue {
+    id: string;
+    userId: string;
+    status: string;
+    venueId: string;
+}
+
 export const BOOKING_REPOSITORY = Symbol('BOOKING_REPOSITORY');
 
 export interface IBookingRepository {
     create(data: CreateBookingData): Promise<Booking>;
     findById(id: string): Promise<Booking | null>;
     findByIdWithLock(id: string): Promise<Booking | null>;
+    findByIdWithVenue(id: string): Promise<BookingWithVenue | null>;
     update(id: string, data: UpdateBookingData): Promise<Booking>;
     findConflicting(params: FindConflictingBookingsParams): Promise<Booking[]>;
     findMany(params: FindBookingsParams): Promise<PaginatedResult<Booking>>;
     findByUserIdAndCourtIds(userId: string, courtIds: string[]): Promise<PaginatedResult<Booking>>;
     expireHolds(): Promise<number>;
 }
+

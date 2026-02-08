@@ -5,15 +5,19 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService } from '../../../modules/auth/auth.service';
 import { Public } from '../../decorators/public.decorator';
 
 import { LoginDto, LoginResponseDto, RegisterDto, RegisterResponseDto } from './auth.dto';
+import { LoginUseCase } from '../../../application/use-cases/auth/login.use-case';
+import { RegisterUseCase } from '../../../application/use-cases/auth/register.use-case';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+    constructor(
+        private readonly loginUseCase: LoginUseCase,
+        private readonly registerUseCase: RegisterUseCase,
+    ) { }
 
     @Post('login')
     @Public()
@@ -22,7 +26,7 @@ export class AuthController {
     @ApiResponse({ status: 200, type: LoginResponseDto })
     @ApiResponse({ status: 401, description: 'Invalid credentials' })
     async login(@Body() dto: LoginDto): Promise<LoginResponseDto> {
-        const result = await this.authService.login({
+        const result = await this.loginUseCase.execute({
             phoneOrEmail: dto.phoneOrEmail,
             password: dto.otpOrPassword,
         });
@@ -37,15 +41,13 @@ export class AuthController {
     @ApiResponse({ status: 200, type: RegisterResponseDto })
     @ApiResponse({ status: 401, description: 'Invalid credentials' })
     async register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
-        const result = await this.authService.register(
-            {
-                email: dto.email,
-                password: dto.password,
-                fullName: dto.fullName,
-                role: dto.role,
-                phone: dto.phone,
-            }
-        );
+        const result = await this.registerUseCase.execute({
+            email: dto.email,
+            password: dto.password,
+            fullName: dto.fullName,
+            role: dto.role,
+            phone: dto.phone,
+        });
         return result;
     }
 }

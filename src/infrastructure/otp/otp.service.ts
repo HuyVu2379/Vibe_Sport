@@ -6,6 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../redis/redis.service';
 import { InvalidOtpError, OtpExpiredError, OtpNotFoundError } from '../../domain/errors';
+import { IOtpService } from '../../application/ports/otp.service.port';
 
 /**
  * OTP types for different use cases
@@ -22,7 +23,7 @@ export type OtpType = 'forgot_password';
  * - Uses type-safe key format: otp:{type}:{userId}
  */
 @Injectable()
-export class OtpService {
+export class OtpService implements IOtpService {
     private readonly logger = new Logger(OtpService.name);
     private readonly otpTtlSeconds: number;
     private readonly otpLength: number;

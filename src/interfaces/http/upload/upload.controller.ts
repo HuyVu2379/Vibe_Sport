@@ -1,5 +1,5 @@
 // ===========================================
-// UPLOAD CONTROLLER - REST API Endpoints
+// INTERFACES LAYER - Upload Controller
 // ===========================================
 
 import {
@@ -15,11 +15,13 @@ import {
     FileTypeValidator,
     UseGuards,
     Body,
+    Inject,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags, ApiBody } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../interfaces/guards/jwt-auth.guard';
-import { UploadService, UploadResult } from './upload.service';
+
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { IUploadService, UPLOAD_SERVICE, UploadResult } from '../../../application/ports';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
@@ -29,7 +31,10 @@ const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UploadController {
-    constructor(private readonly uploadService: UploadService) { }
+    constructor(
+        @Inject(UPLOAD_SERVICE)
+        private readonly uploadService: IUploadService,
+    ) { }
 
     @Post('image')
     @ApiOperation({ summary: 'Upload a single image' })

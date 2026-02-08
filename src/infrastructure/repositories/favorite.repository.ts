@@ -4,23 +4,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-
-export interface FavoriteVenueWithDetails {
-    id: string;
-    venueId: string;
-    userId: string;
-    createdAt: Date;
-    venue: {
-        id: string;
-        name: string;
-        address: string;
-        imageUrls: string[];
-        rating: number | null;
-    };
-}
+import { IFavoriteRepository, FavoriteVenueWithDetails } from '../../application/ports/favorite.repository.port';
 
 @Injectable()
-export class FavoriteRepository {
+export class FavoriteRepository implements IFavoriteRepository {
     constructor(private readonly prisma: PrismaService) { }
 
     async add(userId: string, venueId: string): Promise<{ id: string }> {

@@ -13,6 +13,7 @@ import {
     VenueDetailResponseDto,
 } from './venues.dto';
 import { VenueNotFoundError } from '../../../domain/errors';
+import { VenueMapper } from '../../../application/mappers/venue.mapper';
 
 @ApiTags('Venues')
 @Controller('venues')
@@ -20,6 +21,7 @@ export class VenuesController {
     constructor(
         @Inject(VENUE_REPOSITORY)
         private readonly venueRepository: IVenueRepository,
+        private readonly venueMapper: VenueMapper,
     ) { }
 
     @Get()
@@ -40,25 +42,7 @@ export class VenuesController {
             size: query.size,
         });
 
-        return {
-            items: result.items.map((venue) => ({
-                venueId: venue.id,
-                name: venue.name,
-                address: venue.address,
-                lat: venue.latitude,
-                lng: venue.longitude,
-                distanceKm: venue.distanceKm,
-                sportTypes: venue.sportTypes,
-                totalCourts: venue.totalCourts,
-                totalReviews: venue.totalReviews,
-                ratingAvg: venue.ratingAvg,
-                minPricePerHour: venue.minPricePerHour,
-                imageUrl: venue.imageUrl || '',
-            })),
-            page: result.page,
-            size: result.size,
-            total: result.total,
-        };
+        return this.venueMapper.toListResponse(result);
     }
 
     @Get(':venueId')
@@ -75,50 +59,6 @@ export class VenuesController {
             throw new VenueNotFoundError(venueId);
         }
 
-        return {
-            venueId: venue.id,
-            name: venue.name,
-            address: venue.address,
-            lat: Number(venue.latitude),
-            lng: Number(venue.longitude),
-            courts: venue.courts.map((court: any) => {
-                const prices = court.pricingRules?.map((p: any) => Number(p.pricePerHour)) || [];
-                const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-                return {
-                    courtId: court.id,
-                    name: court.name,
-                    sportType: court.sportType,
-                    minPricePerHour: minPrice,
-                    imageUrls: court.imageUrls || [],
-                };
-            }),
-            imageUrls: venue.imageUrls || [],
-            about: venue.description || '',
-            amenities: venue.venueAmenities?.map((va: any) => ({
-                amenityId: va.amenity.id,
-                name: va.amenity.name,
-                icon: va.amenity.icon || '',
-            })) || [],
-            totalReviews: venue._count?.reviews || 0,
-            ratingAvg: venue.rating || 0,
-            openHours: venue.operatingHours?.map((oh: any) => ({
-                dayOfWeek: oh.dayOfWeek,
-                openTime: oh.openTime,
-                closeTime: oh.closeTime,
-            })) || [],
-            contact: {
-                phone: venue.owner?.phone || '',
-                email: venue.owner?.email || '',
-            },
-            policy: venue.venuePolicy ? {
-                depositType: venue.venuePolicy.depositType,
-                depositPercentage: Number(venue.venuePolicy.depositValue), // Assuming depositValue is relevant for percentage or fixed
-                cancelBeforeHours: venue.venuePolicy.cancelBeforeHours,
-            } : {
-                depositType: 'NONE',
-                depositPercentage: 0,
-                cancelBeforeHours: 24,
-            },
-        };
+        return this.venueMapper.toDetailResponse(venue);
     }
 }
