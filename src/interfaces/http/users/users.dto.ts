@@ -3,7 +3,32 @@
 // ===========================================
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength, Matches, Length, IsNumberString } from 'class-validator';
+import { IsString, MinLength, Matches, Length, IsNumberString, IsOptional, IsUrl } from 'class-validator';
+
+/**
+ * DTO for updating user profile
+ */
+export class UpdateProfileDto {
+    @ApiProperty({
+        example: 'John Doe',
+        description: 'User full name',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    @MinLength(1, { message: 'Full name cannot be empty' })
+    fullName?: string;
+
+    @ApiProperty({
+        example: 'https://example.com/avatar.jpg',
+        description: 'User avatar URL',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    @IsUrl({}, { message: 'Avatar URL must be a valid URL' })
+    avatarUrl?: string;
+}
 
 /**
  * DTO for changing password (authenticated users)

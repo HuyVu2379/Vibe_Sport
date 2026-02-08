@@ -2,12 +2,13 @@
 // INTERFACES LAYER - Users Controller
 // ===========================================
 
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 
 import { PasswordService } from '../../../modules/users/password.service';
+import { UsersService } from '@/modules/users/users.service';
 import { AuthService } from '../../../modules/auth/auth.service';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Public } from '../../decorators/public.decorator';
@@ -15,6 +16,7 @@ import {
     ChangePasswordDto,
     ForgotPasswordRequestDto,
     ForgotPasswordVerifyDto,
+    UpdateProfileDto,
     SuccessResponseDto,
 } from './users.dto';
 
@@ -32,8 +34,51 @@ import {
 export class UsersController {
     constructor(
         private readonly passwordService: PasswordService,
+        private readonly usersService: UsersService,
         private readonly authService: AuthService,
     ) { }
+
+    /**
+     * Update user profile (fullName and avatarUrl)
+     * 
+     * Requirements:
+     * - Valid JWT token (user must be logged in)
+     * - At least one field (fullName or avatarUrl) must be provided
+     * 
+     * Side effects:
+     * - Updates user profile in database
+     */
+    @Patch('profile')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({
+        summary: 'Update user profile',
+        description: 'Update fullName and/or avatarUrl for the authenticated user. At least one field must be provided.',
+    })
+    @ApiResponse({
+        status: 200,
+        type: SuccessResponseDto,
+        description: 'Profile updated successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Validation error or no fields provided',
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Unauthorized - Invalid or missing JWT token',
+    })
+    async updateProfile(
+        @Req() req: Request,
+        @Body() dto: UpdateProfileDto,
+    ): Promise<SuccessResponseDto> {
+        // Extract user ID from JWT payload (set by JwtAuthGuard)
+        const userId = (req.user as any).userId;
+
+        await this.usersService.updateProfile(userId, dto);
+
+        return new SuccessResponseDto('Profile updated successfully');
+    }
 
     /**
      * Change password for authenticated user

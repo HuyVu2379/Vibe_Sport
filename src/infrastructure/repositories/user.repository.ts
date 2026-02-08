@@ -73,6 +73,19 @@ export class UserRepository implements IUserRepository {
         });
     }
 
+    async updateProfile(
+        userId: string,
+        data: { fullName?: string; avatarUrl?: string },
+    ): Promise<void> {
+        await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                ...(data.fullName !== undefined && { fullName: data.fullName }),
+                ...(data.avatarUrl !== undefined && { avatarUrl: data.avatarUrl }),
+            },
+        });
+    }
+
     private mapToDomain(record: any): User {
         return new User({
             id: record.id,
