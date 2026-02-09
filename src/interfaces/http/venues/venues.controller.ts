@@ -4,24 +4,20 @@
 
 import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { Inject } from '@nestjs/common';
 import { Public } from '../../decorators/public.decorator';
-import { VENUE_REPOSITORY, IVenueRepository } from '../../../application/ports';
 import {
     SearchVenuesQueryDto,
     VenueListResponseDto,
     VenueDetailResponseDto,
 } from './venues.dto';
-import { VenueNotFoundError } from '../../../domain/errors';
-import { VenueMapper } from '../../../application/mappers/venue.mapper';
+import { SearchVenuesUseCase, GetVenueDetailUseCase } from '../../../application/use-cases/venues';
 
 @ApiTags('Venues')
 @Controller('venues')
 export class VenuesController {
     constructor(
-        @Inject(VENUE_REPOSITORY)
-        private readonly venueRepository: IVenueRepository,
-        private readonly venueMapper: VenueMapper,
+        private readonly searchVenuesUseCase: SearchVenuesUseCase,
+        private readonly getVenueDetailUseCase: GetVenueDetailUseCase,
     ) { }
 
     @Get()
@@ -29,7 +25,7 @@ export class VenuesController {
     @ApiOperation({ summary: 'Search venues' })
     @ApiResponse({ status: 200, type: VenueListResponseDto })
     async searchVenues(@Query() query: SearchVenuesQueryDto): Promise<VenueListResponseDto> {
-        const result = await this.venueRepository.search({
+        return this.searchVenuesUseCase.execute({
             lat: query.lat,
             lng: query.lng,
             radiusKm: query.radiusKm,
@@ -41,8 +37,6 @@ export class VenuesController {
             page: query.page,
             size: query.size,
         });
-
-        return this.venueMapper.toListResponse(result);
     }
 
     @Get(':venueId')
@@ -54,11 +48,6 @@ export class VenuesController {
     async getVenueDetail(
         @Param('venueId', ParseUUIDPipe) venueId: string,
     ): Promise<VenueDetailResponseDto> {
-        const venue = await this.venueRepository.findByIdWithCourts(venueId);
-        if (!venue) {
-            throw new VenueNotFoundError(venueId);
-        }
-
-        return this.venueMapper.toDetailResponse(venue);
+        return this.getVenueDetailUseCase.execute({ venueId });
     }
 }

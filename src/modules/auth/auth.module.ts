@@ -74,6 +74,8 @@ import {
         ValidateUserUseCase,
         CheckTokenRevokedUseCase,
         LogoutUseCase,
+        TOKEN_SERVICE,
+        TOKEN_BLACKLIST_SERVICE,
     ],
 })
 export class AuthModule { }

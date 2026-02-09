@@ -1,44 +1,64 @@
+// ===========================================
+// APPLICATION LAYER - Get Venue Detail Use Case
+// ===========================================
 
 import { Injectable, Inject } from '@nestjs/common';
-import { VENUE_REPOSITORY, IVenueRepository, SearchVenuesParams } from '../ports/venue.repository.port';
-import { VenueListResponseDto, VenueDetailResponseDto } from '../../interfaces/http/venues/venues.dto';
-import { VenueNotFoundError } from '../../domain/errors';
+import { VENUE_REPOSITORY, IVenueRepository } from '../../ports/venue.repository.port';
+import { VenueNotFoundError } from '../../../domain/errors';
+
+export interface VenueDetailResult {
+    venueId: string;
+    name: string;
+    address: string;
+    lat: number;
+    lng: number;
+    courts: {
+        courtId: string;
+        name: string;
+        sportType: string;
+        minPricePerHour: number;
+        imageUrls: string[];
+    }[];
+    imageUrls: string[];
+    about: string;
+    amenities: {
+        amenityId: string;
+        name: string;
+        icon: string;
+    }[];
+    totalReviews: number;
+    ratingAvg: number;
+    openHours: {
+        dayOfWeek: string;
+        openTime: string;
+        closeTime: string;
+    }[];
+    contact: {
+        phone: string;
+        email: string;
+    };
+    policy: {
+        depositType: string;
+        depositPercentage: number;
+        cancelBeforeHours: number;
+    };
+}
+
+export interface GetVenueDetailInput {
+    venueId: string;
+}
 
 @Injectable()
-export class VenueService {
+export class GetVenueDetailUseCase {
     constructor(
         @Inject(VENUE_REPOSITORY)
         private readonly venueRepository: IVenueRepository,
     ) { }
 
-    async searchVenues(query: SearchVenuesParams): Promise<VenueListResponseDto> {
-        const result = await this.venueRepository.search(query);
-
-        return {
-            items: result.items.map((venue) => ({
-                venueId: venue.id,
-                name: venue.name,
-                address: venue.address,
-                lat: venue.latitude,
-                lng: venue.longitude,
-                distanceKm: venue.distanceKm,
-                sportTypes: venue.sportTypes,
-                totalCourts: venue.totalCourts,
-                totalReviews: venue.totalReviews,
-                ratingAvg: venue.ratingAvg,
-                minPricePerHour: venue.minPricePerHour,
-                imageUrl: venue.imageUrl || '',
-            })),
-            page: result.page,
-            size: result.size,
-            total: result.total,
-        };
-    }
-
-    async getVenueDetail(venueId: string): Promise<VenueDetailResponseDto> {
-        const venue = await this.venueRepository.findByIdWithCourts(venueId);
+    async execute(input: GetVenueDetailInput): Promise<VenueDetailResult> {
+        const venue = await this.venueRepository.findByIdWithCourts(input.venueId);
         if (!venue) {
-            throw new VenueNotFoundError(venueId);
+            throw new VenueNotFoundError(input.venueId);
         }
 
         return {

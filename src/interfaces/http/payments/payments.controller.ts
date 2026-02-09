@@ -1,31 +1,33 @@
+// ===========================================
+// INTERFACES LAYER - Payments Controller
+// ===========================================
+
 import { Controller, Post, Body, Get, Query, Inject } from '@nestjs/common';
-import {
-    PAYMENT_SERVICE,
-    IPaymentService,
-} from '../../../application/ports/payment.service.port';
-import {
-    IBookingRepository,
-    BOOKING_REPOSITORY,
-} from '../../../application/ports/booking.repository.port';
-import { BookingStatus } from '../../../domain/entities/booking-status.enum';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Public } from '../../decorators/public.decorator';
+import { PAYMENT_SERVICE, IPaymentService } from '../../../application/ports/payment.service.port';
 import { ProcessPaymentWebhookUseCase } from '../../../application/use-cases/payments/process-payment-webhook.use-case';
 
+@ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
     constructor(
         @Inject(PAYMENT_SERVICE)
         private readonly paymentService: IPaymentService,
-        @Inject(BOOKING_REPOSITORY)
-        private readonly bookingRepository: IBookingRepository,
         private readonly processPaymentWebhookUseCase: ProcessPaymentWebhookUseCase,
     ) { }
 
     @Post('webhook')
+    @Public()
+    @ApiOperation({ summary: 'Handle payment webhook from PayOS' })
+    @ApiResponse({ status: 200, description: 'Webhook processed' })
     async handleWebhook(@Body() body: any) {
         const isValid = await this.paymentService.verifyWebhook(body);
-        if (!isValid) return { status: 'error', message: 'Invalid signature' };
+        if (!isValid) {
+            return { status: 'error', message: 'Invalid signature' };
+        }
 
-        const { orderCode, success } = body.data;
+        const { success } = body.data;
 
         if (success) {
             console.log(`Payment success for order ${body.data.orderCode}`);
@@ -36,6 +38,9 @@ export class PaymentsController {
     }
 
     @Get('callback')
+    @Public()
+    @ApiOperation({ summary: 'Payment callback redirect' })
+    @ApiResponse({ status: 200, description: 'Payment processed' })
     async handleCallback(@Query('orderCode') orderCode: string) {
         return { status: 'ok', message: 'Payment processed' };
     }
