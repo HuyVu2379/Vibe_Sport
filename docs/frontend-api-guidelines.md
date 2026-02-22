@@ -1,45 +1,95 @@
-# Frontend & AI Guidelines
+# Frontend API Guidelines
 
-## 1. Environment Setup
-Ensure your `.env` contains the correct API and Socket URLs.
-Refer to `env.example` for the full list.
+> Quick reference for frontend devs and AI agents connecting to the Vibe Sport backend.
 
-- Base URL: `http://localhost:3000/api/v1` (Default)
-- Socket URL: `http://localhost:3000`
+---
 
-## 2. Calling REST APIs
-- All `POST`, `PUT`, `DELETE` requests **MUST** send `Content-Type: application/json`.
-- Authenticated requests **MUST** include `Authorization: Bearer <token>`.
-- **Dates**: Send strictly as ISO 8601 strings (e.g., `2026-01-10T18:00:00Z`).
-- **Pagination**: Zero-based. `page=0` is the first page.
+## 1. Environment
 
-## 3. Real-time Interactions (WebSockets)
-- **Connect** to the socket immediately after login.
-- **Join/Leave Venues**: When the user enters the "Venue Details" (Calendar) screen, emit `join_venue`. When they exit, emit `leave_venue`.
-- **Listen for Updates**:
-  - `slot.locked`: Another user is holding a slot. Gray it out immediately.
-  - `slot.released`: A hold expired or was released. Make it clickable again.
-  - `slot.updated`: A booking was confirmed. Mark as booked.
+| Variable       | Example                         |
+|---------------|----------------------------------|
+| `API_BASE_URL` | `http://localhost:3000`          |
+| `SOCKET_URL`   | `http://localhost:3000`          |
 
-## 4. Booking Flow Implementation
-1. **View Schedule**: Call `GET /courts/{courtId}/availability`.
-2. **Select Slot**: User taps a slot.
-3. **Hold Slot**:
-   - Call `POST /bookings/hold`.
-   - Backend acquires lock + Redis hold.
-   - **Frontend**: Show a timer (default 5-10 mins).
-4. **Confirm**:
-   - User reviews details.
-   - Call `POST /bookings/{bookingId}/confirm`.
-   - If payment required (Deposit), the response contains `paymentUrl`. Redirect user.
-   - If no payment, booking becomes `CONFIRMED`.
+---
 
-## 5. Handling Race Conditions
-Since multiple users might tap the same slot:
-- If `POST /bookings/hold` returns `409 Conflict`, the slot was taken milliseconds ago.
-- **Action**: Show "Slot taken" toast and refresh availability.
+## 2. REST Conventions
 
-## 6. Common Mistakes to Avoid
-- **Guessing fields**: Do NOT guess API fields. Check `openapi.json`.
-- **Ignoring Trace IDs**: If you report a bug, include the `traceId` from the error response.
-- **Hardcoding URLs**: Always use environment variables.
+| Rule                    | Detail                                         |
+|------------------------|-------------------------------------------------|
+| Content-Type           | `application/json` (except uploads → `multipart/form-data`) |
+| Authorization          | `Bearer <access_token>` header                  |
+| Date format            | ISO 8601 (`2026-01-10T18:00:00Z`)               |
+| Pagination             | `page` (0-based), `size` (default varies)       |
+| File uploads           | `POST /upload/image`, `/upload/images`, `/upload/video`, `/upload/file` |
+
+---
+
+## 3. API Groups Summary
+
+| Tag        | Base Path                | Auth Required | Description                          |
+|-----------|--------------------------|---------------|--------------------------------------|
+| Auth       | `/auth/*`               | No            | Login, Register                      |
+| Users      | `/users/*`              | Varies        | Profile, Password, Logout            |
+| Venues     | `/venues/*`             | No            | Search, Detail                       |
+| Availability | `/courts/:id/availability` | No         | Court slots for a date               |
+| Bookings   | `/bookings/*`           | Yes           | Hold → Confirm → Cancel              |
+| My Bookings| `/me/bookings`          | Yes           | Customer's own bookings              |
+| Owner      | `/owner/*`              | Yes           | Owner bookings, cancel, analytics    |
+| Reviews    | `/bookings/:id/review`, `/venues/:id/reviews`, `/reviews/*` | Varies | Create, list, reply |
+| Chat       | `/conversations/*`      | Yes           | Conversations, messages              |
+| Favorites  | `/venues/:id/favorite/*`, `/favorites` | Yes | Add, remove, toggle, list         |
+| Payments   | `/payments/*`           | No            | PayOS webhook & callback             |
+| Upload     | `/upload/*`             | Yes           | Image, video, file upload & delete   |
+
+---
+
+## 4. WebSocket Connection
+
+### App Gateway (`/`)
+```typescript
+import { io } from 'socket.io-client';
+const socket = io(SOCKET_URL, {
+  query: { token: accessToken },
+});
+socket.emit('join_venue', venueId);
+socket.on('slot.locked', (data) => { /* update UI */ });
+socket.on('slot.released', (data) => { /* update UI */ });
+socket.on('slot.updated', (data) => { /* update UI */ });
+```
+
+### Chat Gateway (`/chat`)
+```typescript
+const chatSocket = io(`${SOCKET_URL}/chat`);
+chatSocket.emit('join_conversation', { conversationId, userId });
+chatSocket.on('new_message', (data) => { /* append message */ });
+chatSocket.on('user_typing', (data) => { /* typing indicator */ });
+chatSocket.emit('send_message', { conversationId, userId, content });
+chatSocket.emit('typing', { conversationId, userId, isTyping: true });
+```
+
+---
+
+## 5. Booking Flow
+
+```
+1. GET /courts/:courtId/availability?date=YYYY-MM-DD
+2. POST /bookings/hold  →  { bookingId, holdExpiresAt }
+3. POST /bookings/:bookingId/confirm  →  { bookingId, status: "CONFIRMED" }
+4. (optional) POST /bookings/:bookingId/cancel
+```
+
+**Race conditions:** If `409 Conflict`, the slot was taken — re-fetch availability.
+
+---
+
+## 6. Common Mistakes
+
+| #  | Mistake                              | Fix                                          |
+|----|--------------------------------------|----------------------------------------------|
+| 1  | Sending `phoneOrEmail` as `email`   | Use `phoneOrEmail` field name                |
+| 2  | Using `1` instead of `0` for page   | Pagination is 0-based                        |
+| 3  | Not joining venue room              | Must `emit('join_venue', venueId)` first      |
+| 4  | Using default namespace for chat     | Chat is on `/chat` namespace                 |
+| 5  | Missing `Bearer` prefix             | `Authorization: Bearer <token>`              |
+| 6  | Sending JSON for file upload        | Use `multipart/form-data` for `/upload/*`    |

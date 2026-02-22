@@ -20,6 +20,7 @@ export interface VenueDetailResult {
         imageUrls: string[];
     }[];
     imageUrls: string[];
+    sportTypes: string[];
     about: string;
     amenities: {
         amenityId: string;
@@ -79,6 +80,7 @@ export class GetVenueDetailUseCase {
                 };
             }),
             imageUrls: venue.imageUrls || [],
+            sportTypes: [...new Set<string>(venue.courts.map((court: any) => court.sportType))],
             about: venue.description || '',
             amenities: venue.venueAmenities?.map((va: any) => ({
                 amenityId: va.amenity.id,

@@ -2,34 +2,58 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Vibe Sport API",
-        "description": "Sports Facility Booking API - MVP",
-        "version": "1.0",
+        "description": "Sports Facility Booking API — Full Contract (MVP + Expansion features G, H, I)",
+        "version": "2.0",
         "contact": {}
     },
     "tags": [
         {
             "name": "Auth",
-            "description": ""
+            "description": "Login & Register"
+        },
+        {
+            "name": "Users",
+            "description": "Profile, Password, Logout"
         },
         {
             "name": "Venues",
-            "description": ""
+            "description": "Search & Detail"
         },
         {
             "name": "Availability",
-            "description": ""
+            "description": "Court availability"
         },
         {
             "name": "Bookings",
-            "description": ""
+            "description": "HOLD → CONFIRM → CANCEL"
         },
         {
             "name": "My Bookings",
-            "description": ""
+            "description": "Customer bookings"
         },
         {
             "name": "Owner",
-            "description": ""
+            "description": "Owner bookings & analytics"
+        },
+        {
+            "name": "Reviews",
+            "description": "Review & Rating (Group G)"
+        },
+        {
+            "name": "Chat",
+            "description": "Chat Customer-Owner (Group H)"
+        },
+        {
+            "name": "Favorites",
+            "description": "Favorite Venue (Group I)"
+        },
+        {
+            "name": "Payments",
+            "description": "PayOS webhook & callback"
+        },
+        {
+            "name": "Upload",
+            "description": "File upload (Cloudinary)"
         }
     ],
     "servers": [],
@@ -94,6 +118,147 @@
                     "user"
                 ]
             },
+            "RegisterDto": {
+                "type": "object",
+                "properties": {
+                    "fullName": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "user@example.com"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "0123456789"
+                    },
+                    "role": {
+                        "type": "string",
+                        "example": "CUSTOMER",
+                        "enum": [
+                            "CUSTOMER",
+                            "OWNER"
+                        ]
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "password123"
+                    }
+                },
+                "required": [
+                    "fullName",
+                    "email",
+                    "phone",
+                    "role",
+                    "password"
+                ]
+            },
+            "RegisterResponseDto": {
+                "type": "object",
+                "properties": {
+                    "token": {
+                        "type": "string",
+                        "example": "jwt.token.here"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/UserResponseDto"
+                    }
+                },
+                "required": [
+                    "token",
+                    "user"
+                ]
+            },
+            "UpdateProfileDto": {
+                "type": "object",
+                "properties": {
+                    "fullName": {
+                        "type": "string",
+                        "example": "John Doe",
+                        "description": "User full name"
+                    },
+                    "avatarUrl": {
+                        "type": "string",
+                        "example": "https://example.com/avatar.jpg",
+                        "description": "User avatar URL (must be valid URL)"
+                    }
+                }
+            },
+            "ChangePasswordDto": {
+                "type": "object",
+                "properties": {
+                    "oldPassword": {
+                        "type": "string",
+                        "example": "oldPassword123",
+                        "minLength": 6
+                    },
+                    "newPassword": {
+                        "type": "string",
+                        "example": "NewSecureP@ss123",
+                        "minLength": 6,
+                        "description": "Must contain uppercase, lowercase, number, special char"
+                    }
+                },
+                "required": [
+                    "oldPassword",
+                    "newPassword"
+                ]
+            },
+            "ForgotPasswordRequestDto": {
+                "type": "object",
+                "properties": {
+                    "emailOrPhone": {
+                        "type": "string",
+                        "example": "user@example.com"
+                    }
+                },
+                "required": [
+                    "emailOrPhone"
+                ]
+            },
+            "ForgotPasswordVerifyDto": {
+                "type": "object",
+                "properties": {
+                    "emailOrPhone": {
+                        "type": "string",
+                        "example": "user@example.com"
+                    },
+                    "otp": {
+                        "type": "string",
+                        "example": "123456",
+                        "minLength": 6,
+                        "maxLength": 6
+                    },
+                    "newPassword": {
+                        "type": "string",
+                        "example": "NewSecureP@ss123",
+                        "minLength": 6
+                    }
+                },
+                "required": [
+                    "emailOrPhone",
+                    "otp",
+                    "newPassword"
+                ]
+            },
+            "SuccessResponseDto": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    }
+                },
+                "required": [
+                    "success",
+                    "message"
+                ]
+            },
             "SearchVenuesQueryDto": {
                 "type": "object",
                 "properties": {
@@ -122,6 +287,21 @@
                         "type": "string",
                         "example": "sân",
                         "description": "Search query"
+                    },
+                    "date": {
+                        "type": "string",
+                        "example": "2026-02-06",
+                        "description": "Date filter (YYYY-MM-DD)"
+                    },
+                    "minPrice": {
+                        "type": "number",
+                        "example": 100000,
+                        "description": "Min price per hour"
+                    },
+                    "maxPrice": {
+                        "type": "number",
+                        "example": 200000,
+                        "description": "Max price per hour"
                     },
                     "page": {
                         "type": "number",
@@ -172,6 +352,26 @@
                         "example": [
                             "FOOTBALL"
                         ]
+                    },
+                    "totalCourts": {
+                        "type": "number",
+                        "example": 3
+                    },
+                    "totalReviews": {
+                        "type": "number",
+                        "example": 12
+                    },
+                    "ratingAvg": {
+                        "type": "number",
+                        "example": 4.5
+                    },
+                    "minPricePerHour": {
+                        "type": "number",
+                        "example": 100000
+                    },
+                    "imageUrl": {
+                        "type": "string",
+                        "example": "https://..."
                     }
                 },
                 "required": [
@@ -226,6 +426,20 @@
                     "sportType": {
                         "type": "string",
                         "example": "FOOTBALL"
+                    },
+                    "minPricePerHour": {
+                        "type": "number",
+                        "example": 100000
+                    },
+                    "imageUrls": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "url1",
+                            "url2"
+                        ]
                     }
                 },
                 "required": [
@@ -233,6 +447,75 @@
                     "name",
                     "sportType"
                 ]
+            },
+            "AmenityDto": {
+                "type": "object",
+                "properties": {
+                    "amenityId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "WiFi"
+                    },
+                    "icon": {
+                        "type": "string",
+                        "example": "wifi"
+                    }
+                }
+            },
+            "OpenHourDto": {
+                "type": "object",
+                "properties": {
+                    "dayOfWeek": {
+                        "type": "string",
+                        "example": "MONDAY"
+                    },
+                    "openTime": {
+                        "type": "string",
+                        "example": "08:00"
+                    },
+                    "closeTime": {
+                        "type": "string",
+                        "example": "22:00"
+                    }
+                }
+            },
+            "ContactDto": {
+                "type": "object",
+                "properties": {
+                    "phone": {
+                        "type": "string",
+                        "example": "0123456789"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "example@gmail.com"
+                    }
+                }
+            },
+            "PolicyDto": {
+                "type": "object",
+                "properties": {
+                    "depositType": {
+                        "type": "string",
+                        "example": "NONE",
+                        "enum": [
+                            "NONE",
+                            "PERCENTAGE",
+                            "FULL"
+                        ]
+                    },
+                    "depositPercentage": {
+                        "type": "number",
+                        "example": 10
+                    },
+                    "cancelBeforeHours": {
+                        "type": "number",
+                        "example": 24
+                    }
+                }
             },
             "VenueDetailResponseDto": {
                 "type": "object",
@@ -262,6 +545,56 @@
                         "items": {
                             "$ref": "#/components/schemas/CourtItemDto"
                         }
+                    },
+                    "imageUrls": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "url1",
+                            "url2"
+                        ]
+                    },
+                    "about": {
+                        "type": "string",
+                        "example": "About venue"
+                    },
+                    "amenities": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AmenityDto"
+                        }
+                    },
+                    "totalReviews": {
+                        "type": "number",
+                        "example": 12
+                    },
+                    "ratingAvg": {
+                        "type": "number",
+                        "example": 4.5
+                    },
+                    "openHours": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OpenHourDto"
+                        }
+                    },
+                    "contact": {
+                        "$ref": "#/components/schemas/ContactDto"
+                    },
+                    "policy": {
+                        "$ref": "#/components/schemas/PolicyDto"
+                    },
+                    "sportTypes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "FOOTBALL",
+                            "TENNIS"
+                        ]
                     }
                 },
                 "required": [
@@ -505,13 +838,11 @@
                     "page": {
                         "type": "number",
                         "example": 0,
-                        "description": "Page number (0-based)",
                         "minimum": 0
                     },
                     "size": {
                         "type": "number",
                         "example": 10,
-                        "description": "Page size",
                         "minimum": 1
                     }
                 }
@@ -525,9 +856,6 @@
                     },
                     "status": {
                         "type": "string",
-                        "enum": [
-                            "CONFIRMED"
-                        ],
                         "example": "CONFIRMED"
                     },
                     "courtId": {
@@ -588,77 +916,26 @@
                     "total"
                 ]
             },
-            "VenueAnalyticsResponseDto": {
+            "CustomerInfoDto": {
                 "type": "object",
                 "properties": {
-                    "totalRevenue": {
-                        "type": "number",
-                        "example": 1500000
-                    },
-                    "totalBookings": {
-                        "type": "number",
-                        "example": 25
-                    },
-                    "completedBookings": {
-                        "type": "number",
-                        "example": 20
-                    },
-                    "cancelledBookings": {
-                        "type": "number",
-                        "example": 5
-                    }
-                },
-                "required": [
-                    "totalRevenue",
-                    "totalBookings",
-                    "completedBookings",
-                    "cancelledBookings"
-                ]
-            },
-            "VenueAnalyticsQueryDto": {
-                "type": "object",
-                "properties": {
-                    "from": {
-                        "type": "string",
-                        "example": "2026-01-01"
-                    },
-                    "to": {
-                        "type": "string",
-                        "example": "2026-01-31"
-                    }
-                },
-                "required": [
-                    "from",
-                    "to"
-                ]
-            },
-            "GetOwnerBookingsQueryDto": {
-                "type": "object",
-                "properties": {
-                    "from": {
-                        "type": "string",
-                        "example": "2026-01-01"
-                    },
-                    "to": {
-                        "type": "string",
-                        "example": "2026-01-31"
-                    },
-                    "courtId": {
+                    "userId": {
                         "type": "string",
                         "example": "uuid"
                     },
-                    "status": {
-                        "type": "string"
+                    "fullName": {
+                        "type": "string",
+                        "example": "John Doe"
                     },
-                    "page": {
-                        "type": "number",
-                        "example": 0
-                    },
-                    "size": {
-                        "type": "number",
-                        "example": 10
+                    "phone": {
+                        "type": "string",
+                        "example": "0912345678"
                     }
-                }
+                },
+                "required": [
+                    "userId",
+                    "fullName"
+                ]
             },
             "OwnerBookingItemDto": {
                 "type": "object",
@@ -693,27 +970,6 @@
                     "startTime",
                     "endTime",
                     "customer"
-                ]
-            },
-            "CustomerInfoDto": {
-                "type": "object",
-                "properties": {
-                    "userId": {
-                        "type": "string",
-                        "example": "uuid"
-                    },
-                    "fullName": {
-                        "type": "string",
-                        "example": "John Doe"
-                    },
-                    "phone": {
-                        "type": "string",
-                        "example": "0912345678"
-                    }
-                },
-                "required": [
-                    "userId",
-                    "fullName"
                 ]
             },
             "OwnerBookingsListResponseDto": {
@@ -756,6 +1012,344 @@
                 "required": [
                     "reason"
                 ]
+            },
+            "GetOwnerBookingsQueryDto": {
+                "type": "object",
+                "properties": {
+                    "from": {
+                        "type": "string",
+                        "example": "2026-01-01"
+                    },
+                    "to": {
+                        "type": "string",
+                        "example": "2026-01-31"
+                    },
+                    "courtId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "page": {
+                        "type": "number",
+                        "example": 0
+                    },
+                    "size": {
+                        "type": "number",
+                        "example": 10
+                    }
+                }
+            },
+            "VenueAnalyticsQueryDto": {
+                "type": "object",
+                "properties": {
+                    "from": {
+                        "type": "string",
+                        "example": "2026-01-01"
+                    },
+                    "to": {
+                        "type": "string",
+                        "example": "2026-01-31"
+                    }
+                },
+                "required": [
+                    "from",
+                    "to"
+                ]
+            },
+            "VenueAnalyticsResponseDto": {
+                "type": "object",
+                "properties": {
+                    "totalRevenue": {
+                        "type": "number",
+                        "example": 1500000
+                    },
+                    "totalBookings": {
+                        "type": "number",
+                        "example": 25
+                    },
+                    "completedBookings": {
+                        "type": "number",
+                        "example": 20
+                    },
+                    "cancelledBookings": {
+                        "type": "number",
+                        "example": 5
+                    }
+                },
+                "required": [
+                    "totalRevenue",
+                    "totalBookings",
+                    "completedBookings",
+                    "cancelledBookings"
+                ]
+            },
+            "CreateReviewDto": {
+                "type": "object",
+                "properties": {
+                    "rating": {
+                        "type": "number",
+                        "example": 5,
+                        "minimum": 1,
+                        "maximum": 5,
+                        "description": "Rating from 1 to 5"
+                    },
+                    "comment": {
+                        "type": "string",
+                        "example": "Great venue!",
+                        "description": "Optional comment"
+                    }
+                },
+                "required": [
+                    "rating"
+                ]
+            },
+            "ReplyDto": {
+                "type": "object",
+                "properties": {
+                    "reply": {
+                        "type": "string",
+                        "example": "Thank you for your feedback!"
+                    }
+                },
+                "required": [
+                    "reply"
+                ]
+            },
+            "ReviewUserDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "fullName": {
+                        "type": "string",
+                        "example": "John Doe"
+                    }
+                }
+            },
+            "ReviewResponseDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "bookingId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "venueId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "userId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "rating": {
+                        "type": "number",
+                        "example": 5
+                    },
+                    "comment": {
+                        "type": "string",
+                        "example": "Great venue!"
+                    },
+                    "reply": {
+                        "type": "string",
+                        "example": "Thank you!"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/ReviewUserDto"
+                    }
+                },
+                "required": [
+                    "id",
+                    "bookingId",
+                    "venueId",
+                    "userId",
+                    "rating",
+                    "createdAt"
+                ]
+            },
+            "VenueReviewsResponseDto": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ReviewResponseDto"
+                        }
+                    },
+                    "total": {
+                        "type": "number",
+                        "example": 10
+                    },
+                    "averageRating": {
+                        "type": "number",
+                        "example": 4.5
+                    }
+                },
+                "required": [
+                    "items",
+                    "total",
+                    "averageRating"
+                ]
+            },
+            "SendMessageDto": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "example": "Hello, I have a question about my booking"
+                    }
+                },
+                "required": [
+                    "content"
+                ]
+            },
+            "ConversationResponseDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "BOOKING",
+                            "VENUE_INQUIRY"
+                        ]
+                    },
+                    "bookingId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "venueId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "lastMessage": {
+                        "type": "string",
+                        "example": "Last message preview..."
+                    },
+                    "lastMessageAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "type",
+                    "createdAt"
+                ]
+            },
+            "MessageResponseDto": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "conversationId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "senderId": {
+                        "type": "string",
+                        "example": "uuid"
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Hello!"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "TEXT",
+                            "IMAGE",
+                            "SYSTEM"
+                        ]
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "id",
+                    "conversationId",
+                    "senderId",
+                    "content",
+                    "type",
+                    "createdAt"
+                ]
+            },
+            "ConversationsListResponseDto": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ConversationResponseDto"
+                        }
+                    },
+                    "total": {
+                        "type": "number",
+                        "example": 10
+                    }
+                },
+                "required": [
+                    "items",
+                    "total"
+                ]
+            },
+            "MessagesListResponseDto": {
+                "type": "object",
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageResponseDto"
+                        }
+                    },
+                    "total": {
+                        "type": "number",
+                        "example": 50
+                    }
+                },
+                "required": [
+                    "items",
+                    "total"
+                ]
+            },
+            "UploadResult": {
+                "type": "object",
+                "properties": {
+                    "url": {
+                        "type": "string",
+                        "example": "https://res.cloudinary.com/..."
+                    },
+                    "publicId": {
+                        "type": "string",
+                        "example": "vibe-sport/images/abc123"
+                    }
+                },
+                "required": [
+                    "url",
+                    "publicId"
+                ]
             }
         }
     },
@@ -792,6 +1386,232 @@
                 },
                 "tags": [
                     "Auth"
+                ]
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "operationId": "AuthController_register",
+                "summary": "Register",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RegisterResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                },
+                "tags": [
+                    "Auth"
+                ]
+            }
+        },
+        "/users/profile": {
+            "patch": {
+                "operationId": "UsersController_updateProfile",
+                "summary": "Update user profile",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateProfileDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "tags": [
+                    "Users"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/users/change-password": {
+            "post": {
+                "operationId": "UsersController_changePassword",
+                "summary": "Change password",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid old password"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "tags": [
+                    "Users"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/users/forgot-password/request": {
+            "post": {
+                "operationId": "UsersController_requestPasswordReset",
+                "summary": "Request password reset OTP",
+                "description": "Rate limited: 3 requests per 15 minutes",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForgotPasswordRequestDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too many requests"
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/users/forgot-password/verify": {
+            "post": {
+                "operationId": "UsersController_verifyOtpAndResetPassword",
+                "summary": "Verify OTP and reset password",
+                "description": "Rate limited: 5 requests per 15 minutes",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ForgotPasswordVerifyDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired OTP"
+                    },
+                    "429": {
+                        "description": "Too many requests"
+                    }
+                },
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/users/logout": {
+            "post": {
+                "operationId": "UsersController_logout",
+                "summary": "Logout",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponseDto"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "tags": [
+                    "Users"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
                 ]
             }
         },
@@ -844,6 +1664,33 @@
                         "schema": {
                             "type": "string",
                             "example": "sân"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "2026-02-06"
+                        }
+                    },
+                    {
+                        "name": "minPrice",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 100000
+                        }
+                    },
+                    {
+                        "name": "maxPrice",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 200000
                         }
                     },
                     {
@@ -1352,6 +2199,855 @@
                 },
                 "tags": [
                     "Owner"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/bookings/{bookingId}/review": {
+            "post": {
+                "operationId": "ReviewsController_createReview",
+                "summary": "Create a review for a booking",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateReviewDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReviewResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Reviews"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/venues/{venueId}/reviews": {
+            "get": {
+                "operationId": "ReviewsController_getVenueReviews",
+                "summary": "Get venue reviews",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/VenueReviewsResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Reviews"
+                ]
+            }
+        },
+        "/reviews/{reviewId}/reply": {
+            "post": {
+                "operationId": "ReviewsController_addReply",
+                "summary": "Owner reply to a review",
+                "parameters": [
+                    {
+                        "name": "reviewId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReplyDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReviewResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Reviews"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/reviews/{reviewId}": {
+            "get": {
+                "operationId": "ReviewsController_getReview",
+                "summary": "Get a review by ID",
+                "parameters": [
+                    {
+                        "name": "reviewId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReviewResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Reviews"
+                ]
+            }
+        },
+        "/conversations": {
+            "get": {
+                "operationId": "ChatController_getConversations",
+                "summary": "Get user conversations",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConversationsListResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/conversations/{conversationId}": {
+            "get": {
+                "operationId": "ChatController_getConversation",
+                "summary": "Get conversation details",
+                "parameters": [
+                    {
+                        "name": "conversationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConversationResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/conversations/{conversationId}/messages": {
+            "get": {
+                "operationId": "ChatController_getMessages",
+                "summary": "Get conversation messages",
+                "parameters": [
+                    {
+                        "name": "conversationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessagesListResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "post": {
+                "operationId": "ChatController_sendMessage",
+                "summary": "Send a message",
+                "parameters": [
+                    {
+                        "name": "conversationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SendMessageDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/conversations/booking/{bookingId}": {
+            "post": {
+                "operationId": "ChatController_startBookingChat",
+                "summary": "Start or get booking chat",
+                "parameters": [
+                    {
+                        "name": "bookingId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConversationResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/conversations/venue/{venueId}/inquiry": {
+            "post": {
+                "operationId": "ChatController_startVenueInquiry",
+                "summary": "Start venue inquiry chat",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConversationResponseDto"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Chat"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/venues/{venueId}/favorite": {
+            "post": {
+                "operationId": "FavoritesController_addFavorite",
+                "summary": "Add venue to favorites",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Favorite added"
+                    }
+                },
+                "tags": [
+                    "Favorites"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            },
+            "delete": {
+                "operationId": "FavoritesController_removeFavorite",
+                "summary": "Remove venue from favorites",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{ success: true }"
+                    }
+                },
+                "tags": [
+                    "Favorites"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/venues/{venueId}/favorite/toggle": {
+            "post": {
+                "operationId": "FavoritesController_toggleFavorite",
+                "summary": "Toggle venue favorite status",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns new favorite status"
+                    }
+                },
+                "tags": [
+                    "Favorites"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/venues/{venueId}/favorite/status": {
+            "get": {
+                "operationId": "FavoritesController_checkFavoriteStatus",
+                "summary": "Check if venue is favorited",
+                "parameters": [
+                    {
+                        "name": "venueId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{ isFavorite: boolean }"
+                    }
+                },
+                "tags": [
+                    "Favorites"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/favorites": {
+            "get": {
+                "operationId": "FavoritesController_getUserFavorites",
+                "summary": "Get user favorites",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 0
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "example": 10
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of favorite venues"
+                    }
+                },
+                "tags": [
+                    "Favorites"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/payments/webhook": {
+            "post": {
+                "operationId": "PaymentsController_handleWebhook",
+                "summary": "Handle payment webhook from PayOS",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    }
+                },
+                "tags": [
+                    "Payments"
+                ]
+            }
+        },
+        "/payments/callback": {
+            "get": {
+                "operationId": "PaymentsController_handleCallback",
+                "summary": "Payment callback redirect",
+                "parameters": [
+                    {
+                        "name": "orderCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payment processed"
+                    }
+                },
+                "tags": [
+                    "Payments"
+                ]
+            }
+        },
+        "/upload/image": {
+            "post": {
+                "operationId": "UploadController_uploadImage",
+                "summary": "Upload a single image",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "folder": {
+                                        "type": "string",
+                                        "example": "venues"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UploadResult"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Upload"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/upload/images": {
+            "post": {
+                "operationId": "UploadController_uploadImages",
+                "summary": "Upload multiple images (max 10)",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "files": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    },
+                                    "folder": {
+                                        "type": "string",
+                                        "example": "venues"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UploadResult"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Upload"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/upload/video": {
+            "post": {
+                "operationId": "UploadController_uploadVideo",
+                "summary": "Upload a video",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "folder": {
+                                        "type": "string",
+                                        "example": "videos"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UploadResult"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Upload"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/upload/file": {
+            "post": {
+                "operationId": "UploadController_uploadFile",
+                "summary": "Upload any file (image, video, document)",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "folder": {
+                                        "type": "string",
+                                        "example": "documents"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UploadResult"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tags": [
+                    "Upload"
+                ],
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ]
+            }
+        },
+        "/upload/{publicId}": {
+            "delete": {
+                "operationId": "UploadController_deleteFile",
+                "summary": "Delete an uploaded file by public ID",
+                "parameters": [
+                    {
+                        "name": "publicId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{ result: string }"
+                    }
+                },
+                "tags": [
+                    "Upload"
                 ],
                 "security": [
                     {

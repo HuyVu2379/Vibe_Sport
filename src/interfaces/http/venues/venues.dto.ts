@@ -251,5 +251,8 @@ export class VenueDetailResponseDto {
 
     @ApiProperty({ type: Policy })
     policy: Policy;
+
+    @ApiProperty({ example: ['FOOTBALL'] })
+    sportTypes: string[];
 }
 
