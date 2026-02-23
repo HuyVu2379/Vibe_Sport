@@ -324,12 +324,12 @@ model Review {
   venueId   String @map("venue_id")
   userId    String @map("user_id")
 
-  rating  Int // 1 → 5
-  comment String?
-  reply   String? // Owner reply
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  rating    Int // 1 → 5
+  comment   String?
+  reply     String? // Owner reply
+  repliedAt DateTime? @map("replied_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
 
   booking Booking @relation(fields: [bookingId], references: [id])
   venue   Venue   @relation(fields: [venueId], references: [id])

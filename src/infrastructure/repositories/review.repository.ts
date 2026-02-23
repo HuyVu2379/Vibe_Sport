@@ -51,7 +51,7 @@ export class ReviewRepository implements IReviewRepository {
                 where: { venueId },
                 include: {
                     user: {
-                        select: { id: true, fullName: true },
+                        select: { id: true, fullName: true, avatarUrl: true },
                     },
                 },
                 orderBy: { createdAt: 'desc' },
@@ -65,7 +65,7 @@ export class ReviewRepository implements IReviewRepository {
             const domain = this.mapToDomain(r);
             return {
                 ...domain,
-                user: { id: r.user.id, fullName: r.user.fullName },
+                user: { userId: r.user.id, fullName: r.user.fullName, avatarUrl: r.user.avatarUrl || '' },
             } as ReviewWithUser;
         });
 
@@ -75,7 +75,7 @@ export class ReviewRepository implements IReviewRepository {
     async addReply(reviewId: string, reply: string): Promise<Review> {
         const review = await this.prisma.review.update({
             where: { id: reviewId },
-            data: { reply },
+            data: { reply, repliedAt: new Date() },
         });
 
         return this.mapToDomain(review);
@@ -107,6 +107,7 @@ export class ReviewRepository implements IReviewRepository {
             record.rating,
             record.comment,
             record.reply,
+            record.repliedAt,
             record.createdAt,
             record.updatedAt,
         );

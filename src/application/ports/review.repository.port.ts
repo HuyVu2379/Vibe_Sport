@@ -14,8 +14,9 @@ export interface CreateReviewData {
 
 export interface ReviewWithUser extends Review {
     user: {
-        id: string;
+        userId: string;
         fullName: string;
+        avatarUrl?: string;
     };
 }
 

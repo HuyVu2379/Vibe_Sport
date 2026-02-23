@@ -26,24 +26,24 @@ export class ReplyDto {
 
 export class ReviewUserDto {
     @ApiProperty({ example: 'uuid' })
-    id: string;
+    userId: string;
 
     @ApiProperty({ example: 'John Doe' })
     fullName: string;
+
+    @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+    avatarUrl?: string;
 }
 
 export class ReviewResponseDto {
     @ApiProperty({ example: 'uuid' })
-    id: string;
+    reviewId: string;
 
     @ApiProperty({ example: 'uuid' })
     bookingId: string;
 
     @ApiProperty({ example: 'uuid' })
     venueId: string;
-
-    @ApiProperty({ example: 'uuid' })
-    userId: string;
 
     @ApiProperty({ example: 5 })
     rating: number;
@@ -53,6 +53,9 @@ export class ReviewResponseDto {
 
     @ApiProperty({ example: 'Thank you!', required: false })
     reply?: string;
+
+    @ApiProperty({ example: '2026-02-22T00:00:00.000Z', required: false })
+    repliedAt?: Date;
 
     @ApiProperty()
     createdAt: Date;
