@@ -10,7 +10,6 @@ export interface SearchVenuesParams {
     radiusKm?: number;
     sportType?: string;
     q?: string;
-    date?: string;
     minPrice?: number;
     maxPrice?: number;
     page?: number;

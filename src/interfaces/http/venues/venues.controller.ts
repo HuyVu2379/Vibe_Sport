@@ -31,7 +31,6 @@ export class VenuesController {
             radiusKm: query.radiusKm,
             sportType: query.sportType,
             q: query.q,
-            date: query.date,
             minPrice: query.minPrice,
             maxPrice: query.maxPrice,
             page: query.page,

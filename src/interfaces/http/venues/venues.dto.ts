@@ -36,11 +36,6 @@ export class SearchVenuesQueryDto {
     @IsString()
     q?: string;
 
-    @ApiPropertyOptional({ example: '2026-02-06', description: 'Date' })
-    @IsOptional()
-    @IsString()
-    date?: string;
-
     @ApiPropertyOptional({ example: 100000, description: 'Min price per hour' })
     @IsOptional()
     @Type(() => Number)
