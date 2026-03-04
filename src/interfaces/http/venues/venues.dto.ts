@@ -183,8 +183,14 @@ export class Contact {
 }
 
 export class Policy {
+    @ApiProperty({ example: 60 })
+    holdTTLMinutes: number;
+
     @ApiProperty({ example: 'NONE' })
     depositType: string;
+
+    @ApiProperty({ example: 'NONE' })
+    refundRule: string;
 
     @ApiProperty({ example: 10 })
     depositPercentage: number;

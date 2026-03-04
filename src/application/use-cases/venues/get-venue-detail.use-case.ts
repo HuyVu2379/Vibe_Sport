@@ -39,7 +39,9 @@ export interface VenueDetailResult {
         email: string;
     };
     policy: {
+        holdTTLMinutes: number;
         depositType: string;
+        refundRule: string;
         depositPercentage: number;
         cancelBeforeHours: number;
     };
@@ -99,10 +101,14 @@ export class GetVenueDetailUseCase {
                 email: venue.owner?.email || '',
             },
             policy: venue.venuePolicy ? {
+                holdTTLMinutes: venue.venuePolicy.holdTTL,
+                refundRule: venue.venuePolicy.refundRule,
                 depositType: venue.venuePolicy.depositType,
                 depositPercentage: Number(venue.venuePolicy.depositValue),
                 cancelBeforeHours: venue.venuePolicy.cancelBeforeHours,
             } : {
+                holdTTLMinutes: 0,
+                refundRule: 'NONE',
                 depositType: 'NONE',
                 depositPercentage: 0,
                 cancelBeforeHours: 24,

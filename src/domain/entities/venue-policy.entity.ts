@@ -1,13 +1,14 @@
+// Quy tắc hoàn tiền khi hủy booking
 export enum RefundRule {
-    FULL = 'FULL',
-    PARTIAL = 'PARTIAL',
-    NONE = 'NONE',
+    FULL = 'FULL', // Hoàn tiền 100% nếu hủy trước thời gian quy định
+    PARTIAL = 'PARTIAL', // Hoàn tiền một phần (ví dụ 50%) nếu hủy trước thời gian quy định
+    NONE = 'NONE', // Không hoàn tiền nếu hủy booking
 }
-
+// Option đặt cọc
 export enum DepositType {
-    NONE = 'NONE',
-    PERCENTAGE = 'PERCENTAGE',
-    FULL = 'FULL',
+    NONE = 'NONE', // Không yêu cầu đặt cọc
+    PERCENTAGE = 'PERCENTAGE', // Đặt cọc theo phần trăm tổng giá trị booking
+    FULL = 'FULL', // Thanh toán toàn bộ ngay khi đặt booking
 }
 
 export class VenuePolicy {
