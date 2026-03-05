@@ -139,7 +139,7 @@ export class ConfirmBookingUseCase {
 
         if (policy && policy.depositType !== 'NONE') {
             let amount = Number(booking.totalPrice);
-            if (policy.depositType === 'PERCENTAGE') {
+            if (policy.depositType === 'PERCENT') {
                 amount = (amount * Number(policy.depositValue)) / 100;
             }
 

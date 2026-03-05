@@ -122,6 +122,9 @@ export class CancelResponseDto {
 
     @ApiProperty({ enum: BookingStatus, example: BookingStatus.CANCELLED_BY_USER })
     status: BookingStatus;
+
+    @ApiPropertyOptional({ example: 100, description: 'Refund percentage (0-100). Undefined if no payment was made.' })
+    refundPercentage?: number;
 }
 
 export class BookingItemDto {

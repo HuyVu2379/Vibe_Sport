@@ -17,6 +17,7 @@ export const VALID_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
     [BookingStatus.HOLD]: [
         BookingStatus.CONFIRMED,
         BookingStatus.EXPIRED,
+        BookingStatus.CANCELLED_BY_USER, // BR-REL-03: User can cancel during HOLD
     ],
     [BookingStatus.CONFIRMED]: [
         BookingStatus.CANCELLED_BY_USER,

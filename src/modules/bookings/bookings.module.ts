@@ -34,7 +34,11 @@ import {
     GetMyBookingsUseCase,
     GetOwnerBookingsUseCase,
     CreateRecurringBookingUseCase,
+    ExpireHoldsUseCase,
+    CompleteBookingsUseCase,
 } from '../../application/use-cases/bookings';
+
+import { BookingSchedulerService } from '../../infrastructure/schedulers/booking.scheduler';
 
 @Module({
     imports: [VenuesModule],
@@ -47,6 +51,11 @@ import {
         GetMyBookingsUseCase,
         GetOwnerBookingsUseCase,
         CreateRecurringBookingUseCase,
+        ExpireHoldsUseCase,
+        CompleteBookingsUseCase,
+
+        // Scheduler (BR-REL-02, BR-REL-07, BR-REL-08)
+        BookingSchedulerService,
 
         // Repository implementations
         { provide: BOOKING_REPOSITORY, useClass: BookingRepository },
@@ -63,6 +72,7 @@ import {
         AUDIT_REPOSITORY,
         GetOwnerBookingsUseCase,
         CancelBookingUseCase,
+        BookingSchedulerService,
     ],
 })
 export class BookingsModule { }

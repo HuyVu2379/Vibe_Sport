@@ -135,6 +135,7 @@ export class BookingsController {
         return {
             bookingId: result.bookingId,
             status: result.status,
+            refundPercentage: result.refundPercentage,
         };
     }
 }

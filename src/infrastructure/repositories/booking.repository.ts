@@ -187,6 +187,31 @@ export class BookingRepository implements IBookingRepository {
         return result.count;
     }
 
+    async completeExpiredBookings(): Promise<number> {
+        const result = await this.prisma.booking.updateMany({
+            where: {
+                status: BookingStatus.CONFIRMED,
+                endTime: { lte: new Date() },
+            },
+            data: {
+                status: BookingStatus.COMPLETED,
+            },
+        });
+
+        return result.count;
+    }
+
+    async findStaleHolds(): Promise<Booking[]> {
+        const bookings = await this.prisma.booking.findMany({
+            where: {
+                status: BookingStatus.HOLD,
+                holdExpiresAt: { lte: new Date() },
+            },
+        });
+
+        return bookings.map(this.mapToDomain);
+    }
+
     private mapToDomain(record: any): Booking {
         return new Booking({
             id: record.id,

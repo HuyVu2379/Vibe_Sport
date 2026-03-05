@@ -68,5 +68,16 @@ export interface IBookingRepository {
     findMany(params: FindBookingsParams): Promise<PaginatedResult<Booking>>;
     findByUserIdAndCourtIds(userId: string, courtIds: string[]): Promise<PaginatedResult<Booking>>;
     expireHolds(): Promise<number>;
+
+    /**
+     * BR-REL-07: Mark CONFIRMED bookings as COMPLETED when endTime has passed
+     */
+    completeExpiredBookings(): Promise<number>;
+
+    /**
+     * BR-REL-08: Find stale HOLD bookings (holdExpiresAt passed but still in HOLD status)
+     * Used for system recovery reconciliation
+     */
+    findStaleHolds(): Promise<Booking[]>;
 }
 

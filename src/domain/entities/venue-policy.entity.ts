@@ -7,7 +7,7 @@ export enum RefundRule {
 // Option đặt cọc
 export enum DepositType {
     NONE = 'NONE', // Không yêu cầu đặt cọc
-    PERCENTAGE = 'PERCENTAGE', // Đặt cọc theo phần trăm tổng giá trị booking
+    PERCENTAGE = 'PERCENT', // Đặt cọc theo phần trăm tổng giá trị booking
     FULL = 'FULL', // Thanh toán toàn bộ ngay khi đặt booking
 }
 

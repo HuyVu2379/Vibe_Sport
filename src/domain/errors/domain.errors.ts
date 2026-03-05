@@ -145,6 +145,14 @@ export class CancellationWindowClosedError extends DomainError {
     }
 }
 
+export class BookingAlreadyStartedError extends DomainError {
+    readonly code = 'BOOKING_ALREADY_STARTED';
+
+    constructor() {
+        super('Cannot cancel a booking that has already started or completed');
+    }
+}
+
 // Password Errors
 export class InvalidPasswordError extends DomainError {
     readonly code = 'INVALID_PASSWORD';
