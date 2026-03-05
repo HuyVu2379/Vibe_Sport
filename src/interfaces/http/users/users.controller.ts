@@ -44,10 +44,10 @@ export class UsersController {
     @ApiResponse({ status: 400, description: 'Validation error' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     async updateProfile(
-        @Req() req: Request,
+        @Req() req: any,
         @Body() dto: UpdateProfileDto,
     ): Promise<SuccessResponseDto> {
-        const userId = (req.user as any).userId;
+        const userId = req.user?.userId;
         await this.updateProfileUseCase.execute({
             userId,
             fullName: dto.fullName,
@@ -64,10 +64,10 @@ export class UsersController {
     @ApiResponse({ status: 400, description: 'Invalid old password' })
     @ApiResponse({ status: 401, description: 'Unauthorized' })
     async changePassword(
-        @Req() req: Request,
+        @Req() req: any,
         @Body() dto: ChangePasswordDto,
     ): Promise<SuccessResponseDto> {
-        const userId = (req.user as any).userId;
+        const userId = req.user?.userId;
         const authHeader = req.headers.authorization;
         const token = authHeader?.replace('Bearer ', '') || '';
 
