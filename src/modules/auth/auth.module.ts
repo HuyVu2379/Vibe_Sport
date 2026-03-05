@@ -38,9 +38,10 @@ import {
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>('jwt.secret'),
+                secret: configService.get<string>('jwt.secret')!,
                 signOptions: {
-                    expiresIn: configService.get<string>('jwt.expiresIn'),
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    expiresIn: (configService.get<string>('jwt.expiresIn') || '7d') as any,
                 },
             }),
         }),
