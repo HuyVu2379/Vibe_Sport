@@ -50,14 +50,16 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(port);
-
-  const logger = app.get(Logger);
-  logger.log(`Application is running on: http://localhost:${port}/${apiPrefix}`);
-  logger.log(`Swagger documentation: http://localhost:${port}/docs`);
+  if (process.env.NODE_ENV !== 'production') {
+    const logger = app.get(Logger);
+    logger.log(`Application is running on: http://localhost:${port}/${apiPrefix}`);
+    logger.log(`Swagger documentation: http://localhost:${port}/docs`);
+  }
 }
 
 bootstrap();
