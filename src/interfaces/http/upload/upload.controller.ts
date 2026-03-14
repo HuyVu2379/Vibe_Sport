@@ -61,7 +61,7 @@ export class UploadController {
         file: Express.Multer.File,
         @Body('folder') folder?: string,
     ): Promise<UploadResult> {
-        return this.uploadService.uploadImage(file, folder || 'vibe-sport/images');
+        return this.uploadService.uploadImage(file, folder || 'Vibe-Sport/images');
     }
 
     @Post('images')

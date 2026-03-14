@@ -3,3 +3,4 @@
 // ===========================================
 
 export * from './update-profile.use-case';
+export * from './get-me.use-case';

@@ -62,6 +62,10 @@ export class User {
         return this.props.status;
     }
 
+    get avatarUrl(): string {
+        return this.props.avatarUrl;
+    }
+
     get createdAt(): Date {
         return this.props.createdAt;
     }

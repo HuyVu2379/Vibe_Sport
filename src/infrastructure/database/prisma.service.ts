@@ -1,6 +1,10 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
+
+neonConfig.webSocketConstructor = ws;
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -11,8 +15,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         if (!databaseUrl) {
             throw new Error('DATABASE_URL environment variable is not set');
         }
-        // Prisma 7: pass database URL via driver adapter since `url` is removed from schema.prisma
-        const adapter = new PrismaNeon({ connectionString: databaseUrl });
+        // Prisma 7: `@prisma/adapter-neon` now expects a PoolConfig object, instead of a Pool instance.
+        const poolConfig = { connectionString: databaseUrl };
+        const adapter = new PrismaNeon(poolConfig);
         super({ adapter } as any);
     }
 

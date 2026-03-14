@@ -20,13 +20,21 @@ export class UpdateProfileDto {
     fullName?: string;
 
     @ApiProperty({
+        example: '0123456789',
+        description: 'User phone number',
+        required: false,
+    })
+    @IsOptional()
+    @IsString()
+    phoneNumber?: string;
+
+    @ApiProperty({
         example: 'https://example.com/avatar.jpg',
         description: 'User avatar URL',
         required: false,
     })
     @IsOptional()
     @IsString()
-    @IsUrl({}, { message: 'Avatar URL must be a valid URL' })
     avatarUrl?: string;
 }
 
@@ -129,4 +137,24 @@ export class SuccessResponseDto {
         this.success = true;
         this.message = message;
     }
+}
+
+export class GetMeResponseDto {
+    @ApiProperty({ example: 'uuid' })
+    userId: string;
+
+    @ApiProperty({ example: 'CUSTOMER' })
+    role: string;
+
+    @ApiProperty({ example: 'John Doe' })
+    fullName: string;
+
+    @ApiProperty({ example: 'user@example.com' })
+    email: string;
+
+    @ApiProperty({ example: '0123456789' })
+    phone: string;
+
+    @ApiProperty({ example: 'https://example.com/avatar.jpg' })
+    avatarUrl: string;
 }

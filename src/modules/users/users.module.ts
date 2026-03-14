@@ -14,11 +14,9 @@ import {
     OTP_SERVICE,
     EMAIL_SERVICE,
 } from '../../application/ports';
-import { TOKEN_BLACKLIST_SERVICE } from '../../application/ports/services/token-blacklist.service.port';
-import { TOKEN_SERVICE } from '../../application/ports/services/token.service.port';
 
 // Use cases
-import { UpdateProfileUseCase } from '../../application/use-cases/users';
+import { UpdateProfileUseCase, GetMeUseCase } from '../../application/use-cases/users';
 import {
     ChangePasswordUseCase,
     RequestPasswordResetUseCase,
@@ -41,7 +39,7 @@ import { BcryptPasswordHashService } from '../../infrastructure/services/bcrypt-
         ChangePasswordUseCase,
         RequestPasswordResetUseCase,
         VerifyOtpAndResetPasswordUseCase,
-
+        GetMeUseCase,
         // Repository implementations
         { provide: USER_REPOSITORY, useClass: UserRepository },
 

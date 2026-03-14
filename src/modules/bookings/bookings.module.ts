@@ -55,7 +55,7 @@ import { BookingSchedulerService } from '../../infrastructure/schedulers/booking
         CompleteBookingsUseCase,
 
         // Scheduler (BR-REL-02, BR-REL-07, BR-REL-08)
-        BookingSchedulerService,
+        // BookingSchedulerService,
 
         // Repository implementations
         { provide: BOOKING_REPOSITORY, useClass: BookingRepository },
@@ -72,7 +72,7 @@ import { BookingSchedulerService } from '../../infrastructure/schedulers/booking
         AUDIT_REPOSITORY,
         GetOwnerBookingsUseCase,
         CancelBookingUseCase,
-        BookingSchedulerService,
+        // BookingSchedulerService,
     ],
 })
 export class BookingsModule { }

@@ -11,8 +11,8 @@ async function bootstrap() {
 
   // Get config
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT', 3000);
-  const apiPrefix = configService.get<string>('API_PREFIX', 'api/v1');
+  const port = configService.get<number>('PORT', 8080);
+  const apiPrefix = configService.get<string>('API_PREFIX', 'api');
 
   // Logger
   app.useLogger(app.get(Logger));
@@ -50,12 +50,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
 
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
-
   await app.listen(port);
   if (process.env.NODE_ENV !== 'production') {
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
     const logger = app.get(Logger);
     logger.log(`Application is running on: http://localhost:${port}/${apiPrefix}`);
     logger.log(`Swagger documentation: http://localhost:${port}/docs`);

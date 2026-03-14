@@ -9,6 +9,7 @@ import { UserNotFoundError } from '../../../domain/errors';
 export interface UpdateProfileInput {
     userId: string;
     fullName?: string;
+    phoneNumber?: string;
     avatarUrl?: string;
 }
 
@@ -20,11 +21,11 @@ export class UpdateProfileUseCase {
     ) { }
 
     async execute(input: UpdateProfileInput): Promise<void> {
-        const { userId, fullName, avatarUrl } = input;
+        const { userId, fullName, phoneNumber, avatarUrl } = input;
 
         // Validate that at least one field is provided
-        if (!fullName && !avatarUrl) {
-            throw new BadRequestException('At least one field (fullName or avatarUrl) must be provided');
+        if (!fullName && !phoneNumber && !avatarUrl) {
+            throw new BadRequestException('At least one field (fullName or phoneNumber) must be provided');
         }
 
         // Fetch user to ensure they exist
@@ -34,6 +35,6 @@ export class UpdateProfileUseCase {
         }
 
         // Update profile in database
-        await this.userRepository.updateProfile(userId, { fullName, avatarUrl });
+        await this.userRepository.updateProfile(userId, { fullName, phoneNumber, avatarUrl });
     }
 }

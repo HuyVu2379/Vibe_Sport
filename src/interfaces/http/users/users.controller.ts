@@ -2,16 +2,18 @@
 // INTERFACES LAYER - Users Controller
 // ===========================================
 
-import { Controller, Post, Body, Req, UseGuards, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Patch, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Request } from 'express';
 
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { Public } from '../../decorators/public.decorator';
+import { CurrentUser } from '../../decorators/current-user.decorator';
 
 // Use cases
 import { UpdateProfileUseCase } from '../../../application/use-cases/users';
+import { GetMeUseCase } from '../../../application/use-cases/users/get-me.use-case';
 import { ChangePasswordUseCase } from '../../../application/use-cases/password/change-password.use-case';
 import { RequestPasswordResetUseCase } from '../../../application/use-cases/password/request-password-reset.use-case';
 import { VerifyOtpAndResetPasswordUseCase } from '../../../application/use-cases/password/verify-otp-reset-password.use-case';
@@ -23,6 +25,7 @@ import {
     ForgotPasswordVerifyDto,
     UpdateProfileDto,
     SuccessResponseDto,
+    GetMeResponseDto,
 } from './users.dto';
 
 @ApiTags('Users')
@@ -30,6 +33,7 @@ import {
 export class UsersController {
     constructor(
         private readonly updateProfileUseCase: UpdateProfileUseCase,
+        private readonly getMeUseCase: GetMeUseCase,
         private readonly changePasswordUseCase: ChangePasswordUseCase,
         private readonly requestPasswordResetUseCase: RequestPasswordResetUseCase,
         private readonly verifyOtpAndResetPasswordUseCase: VerifyOtpAndResetPasswordUseCase,
@@ -51,9 +55,26 @@ export class UsersController {
         await this.updateProfileUseCase.execute({
             userId,
             fullName: dto.fullName,
-            avatarUrl: dto.avatarUrl,
+            phoneNumber: dto.phoneNumber,
+            avatarUrl: dto.avatarUrl
         });
         return new SuccessResponseDto('Profile updated successfully');
+    }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current user profile' })
+    @ApiResponse({ status: 200, type: GetMeResponseDto })
+    @ApiResponse({ status: 401, description: 'Unauthorized' })
+    async getMe(
+        @CurrentUser('userId') userId: string,
+        @Req() req: Request,
+    ): Promise<GetMeResponseDto> {
+        const authHeader = req.headers.authorization;
+        const token = authHeader?.replace('Bearer ', '') || '';
+        const user = await this.getMeUseCase.execute({ userId, token });
+        return user;
     }
 
     @Post('change-password')

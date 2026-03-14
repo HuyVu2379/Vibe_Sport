@@ -75,12 +75,13 @@ export class UserRepository implements IUserRepository {
 
     async updateProfile(
         userId: string,
-        data: { fullName?: string; avatarUrl?: string },
+        data: { fullName?: string; phoneNumber?: string; avatarUrl?: string },
     ): Promise<void> {
         await this.prisma.user.update({
             where: { id: userId },
             data: {
                 ...(data.fullName !== undefined && { fullName: data.fullName }),
+                ...(data.phoneNumber !== undefined && { phone: data.phoneNumber }),
                 ...(data.avatarUrl !== undefined && { avatarUrl: data.avatarUrl }),
             },
         });
