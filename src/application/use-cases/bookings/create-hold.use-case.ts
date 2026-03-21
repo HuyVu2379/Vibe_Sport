@@ -20,12 +20,12 @@ import { IVenueRepository, VENUE_REPOSITORY } from '../../ports/venue.repository
 import { IPricingRepository, PRICING_REPOSITORY } from '../../ports/pricing.repository.port';
 import { ISocketService, SOCKET_SERVICE } from '../../ports/socket.service.port';
 import { BookingStatus, BLOCKING_STATUSES } from '../../../domain/entities/booking-status.enum';
-import { Booking } from '../../../domain/entities/booking.entity';
 import {
     SlotConflictError,
     CourtNotFoundError,
     OutsideOperatingHoursError,
 } from '../../../domain/errors';
+import { SlotConfirmedEvent } from '@/application/events/booking-confirmed.event';
 
 export interface CreateHoldInput {
     userId: string;
@@ -106,7 +106,7 @@ export class CreateHoldUseCase {
         );
 
         if (acquired) {
-            this.socketService.emitToVenue(court.venueId, 'slot.locked', {
+            this.socketService.emitToVenue(court.venueId, SlotConfirmedEvent.SLOT_LOCKED, {
                 courtId,
                 startTime,
                 endTime,
@@ -134,7 +134,7 @@ export class CreateHoldUseCase {
             if (activeConflicts.length > 0) {
                 // Release Redis lock since DB shows conflict
                 await this.holdService.releaseHold(courtId, startTime, endTime);
-                this.socketService.emitToVenue(court.venueId, 'slot.released', {
+                this.socketService.emitToVenue(court.venueId, SlotConfirmedEvent.SLOT_LOCKED, {
                     courtId,
                     startTime,
                     endTime,
@@ -163,7 +163,7 @@ export class CreateHoldUseCase {
                 holdTtlSeconds,
             );
 
-            this.socketService.emitToVenue(court.venueId, 'slot.locked', {
+            this.socketService.emitToVenue(court.venueId, SlotConfirmedEvent.SLOT_LOCKED, {
                 courtId,
                 startTime,
                 endTime,
@@ -193,7 +193,7 @@ export class CreateHoldUseCase {
                 await this.holdService.releaseHold(courtId, startTime, endTime);
                 // Only emit released if we have the court object
                 if (court) {
-                    this.socketService.emitToVenue(court.venueId, 'slot.released', {
+                    this.socketService.emitToVenue(court.venueId, SlotConfirmedEvent.SLOT_LOCKED, {
                         courtId,
                         startTime,
                         endTime,

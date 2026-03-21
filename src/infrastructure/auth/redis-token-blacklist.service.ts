@@ -16,8 +16,11 @@ export class RedisTokenBlacklistService implements ITokenBlacklistService {
      * Format: token:blacklist:{tokenHash}
      */
     private buildKey(token: string): string {
-        // Use a hash of the token to avoid storing full token in Redis key
-        const tokenHash = Buffer.from(token).toString('base64').substring(0, 32);
+        // Use a proper SHA-256 hash of the full token to avoid collisions
+        // The previous implementation using base64 substring only grabbed the JWT header (eyJhbGc...)
+        // causing all tokens to share the same blacklist key.
+        const crypto = require('crypto');
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
         return `token:blacklist:${tokenHash}`;
     }
 
