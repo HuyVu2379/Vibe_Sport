@@ -111,6 +111,8 @@ export class BookingsController {
             startTime: result.startTime.toISOString(),
             endTime: result.endTime.toISOString(),
             totalPrice: result.totalPrice,
+            paymentUrl: result.paymentUrl,
+            orderCode: result.orderCode,
         };
     }
 

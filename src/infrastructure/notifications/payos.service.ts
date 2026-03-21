@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-const PayOS = require('@payos/node');
+const { PayOS } = require('@payos/node');
 import {
     IPaymentService,
     CreatePaymentLinkParams,

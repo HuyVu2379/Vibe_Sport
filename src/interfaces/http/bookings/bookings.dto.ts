@@ -114,6 +114,12 @@ export class ConfirmResponseDto {
 
     @ApiProperty({ example: 200000 })
     totalPrice: number;
+
+    @ApiPropertyOptional({ example: 'https://pay.payos.vn/...', description: 'PayOS payment URL (only when deposit required)' })
+    paymentUrl?: string;
+
+    @ApiPropertyOptional({ example: 123456, description: 'PayOS order code (only when deposit required)' })
+    orderCode?: number;
 }
 
 export class CancelResponseDto {

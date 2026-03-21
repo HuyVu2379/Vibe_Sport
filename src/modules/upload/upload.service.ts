@@ -5,7 +5,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import * as streamifier from 'streamifier';
-import { IUploadService, UploadResult, UploadOptions } from '../../application/ports';
+import { IUploadService, UploadResult } from '../../application/ports';
 
 @Injectable()
 export class UploadService implements IUploadService {
