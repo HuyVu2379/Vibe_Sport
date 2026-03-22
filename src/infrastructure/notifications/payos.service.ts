@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-const { PayOS } = require('@payos/node');
+import { PayOS } from '@payos/node';
 import {
     IPaymentService,
     CreatePaymentLinkParams,
@@ -9,7 +9,7 @@ import {
 
 @Injectable()
 export class PayosService implements IPaymentService {
-    private readonly payos: any;
+    private readonly payos: PayOS;
 
     constructor(private readonly configService: ConfigService) {
         const clientId = this.configService.get<string>('payos.clientId');
@@ -17,7 +17,7 @@ export class PayosService implements IPaymentService {
         const checksumKey = this.configService.get<string>('payos.checksumKey');
 
         if (clientId && apiKey && checksumKey) {
-            this.payos = new PayOS(clientId, apiKey, checksumKey);
+            this.payos = new PayOS({ clientId, apiKey, checksumKey });
         }
     }
 
@@ -27,15 +27,22 @@ export class PayosService implements IPaymentService {
         }
 
         try {
+            const returnUrl = params.returnUrl || this.configService.get<string>('payos.returnUrl');
+            const cancelUrl = params.cancelUrl || this.configService.get<string>('payos.cancelUrl');
+
+            if (!returnUrl || !cancelUrl) {
+                throw new InternalServerErrorException('PayOS returnUrl or cancelUrl is missing');
+            }
+
             const body = {
                 orderCode: Number(String(Date.now()).slice(-6)),
                 amount: params.amount,
                 description: params.description,
-                returnUrl: params.returnUrl || this.configService.get<string>('payos.returnUrl'),
-                cancelUrl: params.cancelUrl || this.configService.get<string>('payos.cancelUrl'),
+                returnUrl,
+                cancelUrl,
             };
 
-            const paymentLinkRes = await this.payos.createPaymentLink(body);
+            const paymentLinkRes = await this.payos.paymentRequests.create(body);
 
             return {
                 paymentUrl: paymentLinkRes.checkoutUrl,
@@ -50,7 +57,7 @@ export class PayosService implements IPaymentService {
     async verifyWebhook(webhookData: any): Promise<boolean> {
         if (!this.payos) return false;
         try {
-            this.payos.verifyPaymentWebhookData(webhookData);
+            await this.payos.webhooks.verify(webhookData);
             return true;
         } catch {
             return false;
@@ -59,7 +66,12 @@ export class PayosService implements IPaymentService {
 
     async getPaymentStatus(orderCode: number): Promise<string> {
         if (!this.payos) return 'UNCONFIGURED';
-        const order = await this.payos.getPaymentLinkInformation(orderCode);
-        return order.status;
+        try {
+            const order = await this.payos.paymentRequests.get(orderCode);
+            return order.status;
+        } catch (error) {
+            console.error('PayOS getPaymentStatus error:', error);
+            return 'FAILED';
+        }
     }
 }
