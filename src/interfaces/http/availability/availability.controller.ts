@@ -6,7 +6,7 @@ import { Controller, Get, Param, Query, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../decorators/public.decorator';
 import { GetAvailabilityUseCase } from '../../../application/use-cases/availability';
-import { AvailabilityResponseDto, GetAvailabilityQueryDto } from './availability.dto';
+import { AvailabilityResponseDto, GetAvailabilityQueryDto, SlotStatusDto } from './availability.dto';
 
 @ApiTags('Availability')
 @Controller('courts')
@@ -32,7 +32,7 @@ export class AvailabilityController {
             slots: slots.map((slot) => ({
                 startTime: slot.startTime.toISOString(),
                 endTime: slot.endTime.toISOString(),
-                status: slot.status,
+                status: slot.status as SlotStatusDto,
                 price: slot.price,
             })),
         };

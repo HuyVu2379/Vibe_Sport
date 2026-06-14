@@ -11,13 +11,13 @@ import {
     IBookingRepository,
     BOOKING_REPOSITORY,
 } from '../../ports';
-import { BLOCKING_STATUSES } from '../../../domain/entities/booking-status.enum';
+import { BookingStatus, BLOCKING_STATUSES } from '../../../domain/entities/booking-status.enum';
 import { CourtNotFoundError } from '../../../domain/errors';
 
 export interface Slot {
     startTime: Date;
     endTime: Date;
-    status: 'AVAILABLE' | 'UNAVAILABLE';
+    status: 'AVAILABLE' | 'HOLD' | 'BOOKED';
     price?: number;
 }
 
@@ -88,10 +88,15 @@ export class GetAvailabilityUseCase {
             const slotEnd = new Date(date);
             slotEnd.setUTCHours(hour + 1, 0, 0, 0);
 
-            // Check if slot overlaps with any booking
-            const isBooked = activeBookings.some(
+            // Check if slot overlaps with any booking and determine specific status
+            const overlappingBooking = activeBookings.find(
                 (booking) => slotStart < booking.endTime && slotEnd > booking.startTime,
             );
+
+            let slotStatus: 'AVAILABLE' | 'HOLD' | 'BOOKED' = 'AVAILABLE';
+            if (overlappingBooking) {
+                slotStatus = overlappingBooking.status === BookingStatus.HOLD ? 'HOLD' : 'BOOKED';
+            }
 
             // Calculate price for slot
             const slotTimeStr = `${String(hour).padStart(2, '0')}:00`;
@@ -105,8 +110,8 @@ export class GetAvailabilityUseCase {
             slots.push({
                 startTime: slotStart,
                 endTime: slotEnd,
-                status: isBooked ? 'UNAVAILABLE' : 'AVAILABLE',
-                price: isBooked ? undefined : applicableRule?.pricePerHour || 100000,
+                status: slotStatus,
+                price: slotStatus === 'AVAILABLE' ? (applicableRule?.pricePerHour || 100000) : undefined,
             });
         }
 

@@ -11,6 +11,12 @@ export class GetAvailabilityQueryDto {
     date: string;
 }
 
+export enum SlotStatusDto {
+    BOOKED = 'BOOKED',
+    HOLD = 'HOLD',
+    AVAILABLE = 'AVAILABLE',
+}
+
 export class SlotDto {
     @ApiProperty({ example: '2026-01-10T18:00:00Z' })
     startTime: string;
@@ -18,8 +24,8 @@ export class SlotDto {
     @ApiProperty({ example: '2026-01-10T19:00:00Z' })
     endTime: string;
 
-    @ApiProperty({ enum: ['AVAILABLE', 'UNAVAILABLE'], example: 'AVAILABLE' })
-    status: 'AVAILABLE' | 'UNAVAILABLE';
+    @ApiProperty({ enum: SlotStatusDto, example: 'AVAILABLE' })
+    status: SlotStatusDto;
 
     @ApiPropertyOptional({ example: 200000 })
     price?: number;
